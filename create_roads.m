@@ -6,8 +6,8 @@ function [ roads ] = create_roads( connectivity_matrix, node_positions, intersec
     for i=1:length(connectivity_matrix)
         for j=1:length(connectivity_matrix)
             if connectivity_matrix(i,j)==1
-                a=find(intersection_node_indices==i)
-                b=find(intersection_node_indices==j)
+                a=find(intersection_node_indices==i);
+                b=find(intersection_node_indices==j);
                 
                 tempRoad=road(count,i,j,node_positions(:,a),node_positions(:,b),5,1);
                 count=count+1;

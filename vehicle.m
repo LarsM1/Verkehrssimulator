@@ -20,9 +20,6 @@ classdef vehicle < handle
             obj.position=0;
         end
         
-        function drive(obj)
-            obj.v = obj.v + 1;
-        end
     end
     
 end

@@ -23,7 +23,12 @@ classdef road < handle
             obj.end_coordinate=end_coordinate;
             obj.v_max=v_max;
             obj.lanes=lanes;
-            cells=zeros(10);
+            obj.cells=zeros(10);
+        end
+        
+        %returns length in meters
+        function out = getLength(obj)
+            out = 1000*lldistkm(obj.start_coordinate(1),obj.start_coordinate(2),obj.end_coordinate(1),obj.end_coordinate(2));
         end
     end
     

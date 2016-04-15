@@ -5,7 +5,6 @@ function [ neighbours ] = get_neighbours( connectivity_matrix, node )
 
 neighbours=[];
 for i=1:length(connectivity_matrix)
-    %for j=1:
     if (connectivity_matrix(node,i)==1)
         neighbours=[neighbours i];
     end
