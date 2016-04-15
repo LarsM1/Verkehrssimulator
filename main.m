@@ -27,7 +27,7 @@ for i=1:length(stuff)
     disp(stuff(2,i))
     
     disp(intersection_node_indices(i))
-    disp('----')
+    disp('---')
 end
 
 get_neighbours(connectivity_matrix,189)
