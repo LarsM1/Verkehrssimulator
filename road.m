@@ -9,10 +9,10 @@ classdef road < handle
         start_coordinate %coordinates
         end_coordinate %coordinates
         v_max
-        lanes
+        lanes 
         cells %where the vehicles are stored
     end
-    
+    %test commit
     methods
         %constructor
         function obj = road(roadID,from,to,start_coordinate,end_coordinate,v_max,lanes)
