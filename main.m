@@ -23,8 +23,8 @@ uniquend = get_unique_node_xy(parsed_osm, intersection_node_indices);
 plot_nodes(ax, parsed_osm, intersection_node_indices)
 
 %delete nodes that aren't necessary and visible on map, but get parsed anyway
-[connectivity_matrix, intersection_node_indices, uniquend] = delete_Node(9,connectivity_matrix, intersection_node_indices,uniquend)
-[connectivity_matrix, intersection_node_indices, uniquend] = delete_Node(196,connectivity_matrix, intersection_node_indices,uniquend)
+[connectivity_matrix, intersection_node_indices, uniquend] = delete_Node(9,connectivity_matrix, intersection_node_indices,uniquend);
+[connectivity_matrix, intersection_node_indices, uniquend] = delete_Node(196,connectivity_matrix, intersection_node_indices,uniquend);
 
 %delete connections that overlap
 connectivity_matrix(188,210)=0;
@@ -43,6 +43,17 @@ connectivity_matrix(208,210)=0;
 
 for i=1:length(roads)
     disp([ 'länge road' num2str(roads(i).roadID) '[' num2str(roads(i).from) '-->' num2str(roads(i).to) '] = ' num2str(roads(i).getLength) ]);
+    %x/y distance from start to fin
+    xdist=abs(roads(i).start_coordinate(1)-roads(i).end_coordinate(1));
+    ydist=abs(roads(i).start_coordinate(2)-endroads(i).end_coordinate(2));
+    for j=1:length(roads(i).cells)
+        if (roads(i).cells(j)~=0)
+            temp1=(xdist/length(roads(i).cells))*j;
+            temp2=(ydist/length(roads(i).cells))*j;
+            
+        end
+    end
+        
 end
 
 %get_neighbours(connectivity_matrix,189)

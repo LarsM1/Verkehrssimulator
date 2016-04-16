@@ -23,7 +23,8 @@ classdef road < handle
             obj.end_coordinate=end_coordinate;
             obj.v_max=v_max;
             obj.lanes=lanes;
-            obj.cells=zeros(10);
+            %length of the street in meters divided by one car length
+            obj.cells=zeros(round(obj.getLength/7.5));
         end
         
         %returns length in meters
