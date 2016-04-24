@@ -1,10 +1,10 @@
-close all
-clear all
+startup
+
 %% name file
 openstreetmap_filename = 'map.osm';
 map_img_filename = 'map.png'; % image file saved from online, if available
 
-%% convert XML -> MATLAB struct
+%convert XML -> MATLAB struct
 [parsed_osm, osm_xml] = parse_openstreetmap(openstreetmap_filename);
 
 %% plot
@@ -19,8 +19,11 @@ plot_way(ax, parsed_osm, map_img_filename) % if you also have a raster image
 [connectivity_matrix, intersection_node_indices] = extract_connectivity(parsed_osm);
 uniquend = get_unique_node_xy(parsed_osm, intersection_node_indices);
 
-%draw streets
+%draw indizes on nodes
 plot_nodes(ax, parsed_osm, intersection_node_indices)
+
+%% osmFunctions end
+%% 
 
 %delete nodes that aren't necessary and visible on map, but get parsed anyway
 [connectivity_matrix, intersection_node_indices, uniquend] = delete_Node(9,connectivity_matrix, intersection_node_indices,uniquend);
@@ -35,70 +38,59 @@ connectivity_matrix(207,208)=0;
 connectivity_matrix(188,210)=0;
 connectivity_matrix(208,210)=0;
 
+%add paths that lead down
+connectivity_matrix(189,188)=1;
+connectivity_matrix(210,189)=1;
+connectivity_matrix(208,192)=1;
+connectivity_matrix(191,194)=1;
+connectivity_matrix(210,195)=1;
+
+
 %create road objects out of the parsed data
 [roads] = create_roads(connectivity_matrix,uniquend.id, intersection_node_indices);
 
+%% create test vehicle and place on street
+vehicles = vehicle(1,6,1);
+vehicles = [vehicles vehicle(2,3,3)];
+vehicles = [vehicles vehicle(3,2,3)];
+vehicles = [vehicles vehicle(4,2,3)];
+vehicles = [vehicles vehicle(5,2,3)];
+
+roads(3).cells(1) = vehicles(2).vehicleID;
+roads(3).cells(5) = vehicles(1).vehicleID;
+roads(9).cells(5) = vehicles(3).vehicleID;
+roads(11).cells(1) = vehicles(4).vehicleID;
+roads(17).cells(1) = vehicles(4).vehicleID;
+
+%% move cars
+circles=[];
+while(true)
+    pause(1);
+	for i = 1:length(circles)
+        delete(circles(i));
+	end
+	circles=[];
+
+	for i=1:length(roads)
+        roads(i).generate(vehicles);
+        circles = roads(i).draw(circles, ax,parsed_osm.bounds);
+	end
+end
 
 %% testing
-
-for i=1:length(roads)
-    disp([ 'länge road' num2str(roads(i).roadID) '[' num2str(roads(i).from) '-->' num2str(roads(i).to) '] = ' num2str(roads(i).getLength) ]);
-    %x/y distance from start to fin
-    xdist=abs(roads(i).start_coordinate(1)-roads(i).end_coordinate(1));
-    ydist=abs(roads(i).start_coordinate(2)-endroads(i).end_coordinate(2));
-    for j=1:length(roads(i).cells)
-        if (roads(i).cells(j)~=0)
-            temp1=(xdist/length(roads(i).cells))*j;
-            temp2=(ydist/length(roads(i).cells))*j;
-            
-        end
-    end
-        
+for i=1:length(intersection_node_indices)
+    disp(['neighbous of ' num2str(intersection_node_indices(i)) ':' num2str(get_neighbours(connectivity_matrix,intersection_node_indices(i)))]);
 end
 
-%get_neighbours(connectivity_matrix,189)
 
-
-% for i=1:length(roads)
-%     road = roads(i);
-%     neighb = get_neighbours(connectivity_matrix,road.from)
-%     for j=1:neighb
-%         lonlat=
-%         lldistkm(road.start_coordinate(1),road.start_coordinate(2),
-%         disp(['von ' num2str(j) ' zu: ' num2str(j) ':' ]);
-%     end
-%     a = road.start_coordinate;
-%     
-% end
-
-count=1;
-arr=[];
-testObject = vehicle(count,1,5);
-count=count+1;
-testObject.v=3;
-arr=[arr testObject];
-testobject2 = vehicle(count,2,5);
-arr=[arr testobject2];
-count=count+1;
-for i=1:length(arr)
-    %disp(arr(i).v)
-    %arr(i).drive();
-    %disp(arr(i))
-end
-
-aaa=([parsed_osm.bounds(1),parsed_osm.bounds(3)]);
-bbb=([parsed_osm.bounds(2),parsed_osm.bounds(4)]);
+%aaa=([parsed_osm.bounds(1),parsed_osm.bounds(3)]);
+%bbb=([parsed_osm.bounds(2),parsed_osm.bounds(4)]);
 %from=find(intersection_node_indices==arr(1).from)
 %to=find(intersection_node_indices==arr(1).to)
 
 %start=stuff(:,from)
 %endd=stuff(:,to)
 
-%n=1000
-%{for i=n:-5:1
-%    plot(i,i,'or','MarkerSize',5,'MarkerFaceColor','r')
-%    pause(1)
-%end
 
 %%
 % stuff = uniquend.id

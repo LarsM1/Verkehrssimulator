@@ -1,6 +1,7 @@
 function [ roads ] = create_roads( connectivity_matrix, node_positions, intersection_node_indices)
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
+%create_roads creates road objects out of the connectivity
+%   each track has an own object
+
     roads=[];
     count=1;
     for i=1:length(connectivity_matrix)

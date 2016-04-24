@@ -1,6 +1,5 @@
 function [ connectivity_matrix, intersection_node_indices, uniquend] = delete_Node( nodeID, connectivity_matrix, intersection_node_indices ,uniquend)
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
+%delete_Node deletes a node and the connectivity to it
 
 %map nodeID to intersection_node_incodes
 node_index=find(intersection_node_indices==nodeID);

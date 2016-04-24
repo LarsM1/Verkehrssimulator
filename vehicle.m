@@ -4,22 +4,22 @@ classdef vehicle < handle
     
     properties
         vehicleID
-        roadID
         v_max
         v
-        position
     end
     
     methods
         %constructor
-        function obj = vehicle(vehicleID,roadID,v_max)
+        function obj = vehicle(vehicleID,v_max, v)
             obj.vehicleID=vehicleID;
-            obj.roadID=roadID;
             obj.v_max=v_max;
             obj.v=0;
-            obj.position=0;
         end
         
+        %returns the position on the road
+        function out = getPositionOnRoad(obj, roads)
+
+        end
     end
     
 end
