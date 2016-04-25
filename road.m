@@ -89,7 +89,7 @@ classdef road < handle
                         else dirString='v';
                     end
                     
-                    circles=[circles line(ax,'XData',obj.start_coordinate(1)-temp1, 'YData',obj.start_coordinate(2)-temp2, 'Color','r', ...
+                    circles=[circles line('Parent', ax,'XData',obj.start_coordinate(1)-temp1, 'YData',obj.start_coordinate(2)-temp2, 'Color','r', ...
                                'Marker',dirString, 'MarkerSize',4)];
                 end
             end
