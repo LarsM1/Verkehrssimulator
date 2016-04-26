@@ -45,41 +45,67 @@ connectivity_matrix(208,192)=1;
 connectivity_matrix(191,194)=1;
 connectivity_matrix(210,195)=1;
 
-
 %create road objects out of the parsed data
-[roads] = create_roads(connectivity_matrix,uniquend.id, intersection_node_indices);
+roads = create_roads(connectivity_matrix,uniquend.id, intersection_node_indices);
 
-%% create test vehicle and place on street
-vehicles = vehicle(1,6,1);
-vehicles = [vehicles vehicle(2,3,3)];
-vehicles = [vehicles vehicle(3,2,3)];
+%% create test vehicles and place on street
+vehicles = vehicle(1,2,2);
+vehicles = [vehicles vehicle(2,2,2)];
+vehicles = [vehicles vehicle(3,2,2)];
 vehicles = [vehicles vehicle(4,2,3)];
 vehicles = [vehicles vehicle(5,2,3)];
+vehicles = [vehicles vehicle(6,2,3)];
+vehicles = [vehicles vehicle(7,2,3)];
+vehicles = [vehicles vehicle(8,2,3)];
 
-roads(3).cells(1) = vehicles(2).vehicleID;
-roads(3).cells(5) = vehicles(1).vehicleID;
-roads(9).cells(5) = vehicles(3).vehicleID;
-roads(11).cells(1) = vehicles(4).vehicleID;
-roads(17).cells(1) = vehicles(4).vehicleID;
+roads(3).cells(length(roads(3).cells)-5) = vehicles(1).vehicleID;
+roads(8).cells(length(roads(10).cells)-5) = vehicles(2).vehicleID;
+roads(1).cells(length(roads(1).cells)) = vehicles(3).vehicleID;
+
+roads(3).cells(1) = vehicles(4).vehicleID;
+roads(3).cells(5) = vehicles(5).vehicleID;
+roads(9).cells(5) = vehicles(6).vehicleID;
+roads(11).cells(1) = vehicles(7).vehicleID;
+roads(15).cells(1) = vehicles(8).vehicleID;
+
 
 %% move cars
 circles=[];
 while(true)
     pause(1);
-	for i = 1:length(circles)
-        delete(circles(i));
-	end
-	circles=[];
-
+    
+    %generate
 	for i=1:length(roads)
-        roads(i).generate(vehicles);
-        circles = roads(i).draw(circles, ax,parsed_osm.bounds);
+        roads(i).generate(vehicles,roads);
 	end
+    
+    %delete old car arrows
+    for i = 1:length(circles)
+        delete(circles(i));
+    end
+	circles=[];
+    
+    %remove reservation cells (== -1) and update map
+    for i=1:length(roads)
+        for j=1:length(roads(i).cells)
+            if roads(i).cells(j) == -1
+                roads(i).cells(j) = 0;
+            end
+        end
+        circles = roads(i).draw(circles, ax,parsed_osm.bounds);
+    end
+    
+    %reset already-moved-status of vehicles (switchToThisRoad == -2) 
+    for i=1:length(vehicles)
+        if vehicles(i).switchToThisRoad == -2
+           vehicles(i).switchToThisRoad = -1; 
+        end
+    end
 end
 
 %% testing
 for i=1:length(intersection_node_indices)
-    disp(['neighbous of ' num2str(intersection_node_indices(i)) ':' num2str(get_neighbours(connectivity_matrix,intersection_node_indices(i)))]);
+    disp(['neighbous of ' num2str(intersection_node_indices(i)) ':' num2str(get_neighbours(roads,intersection_node_indices(i)))]);
 end
 
 

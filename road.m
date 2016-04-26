@@ -23,7 +23,7 @@ classdef road < handle
             obj.v_max=v_max;
             obj.lanes=lanes;
             %length of the street in meters divided by one car length
-            obj.cells=zeros(1,round(obj.getLength/4));
+            obj.cells=zeros(1,round(obj.getLength/3));
         end
         
         %returns length in meters
@@ -95,34 +95,34 @@ classdef road < handle
             end
         end
         
-        function generate(obj,vehicles)
+        function generate(obj,vehicles,roads)
             %beschleunigen
             for t=1:length(obj.cells)
-                if (obj.cells(t)~=0)
+                if obj.cells(t) > 0
                     for a=1:length(vehicles)
-                        if (obj.cells(t) == vehicles(a).vehicleID)
+                        if obj.cells(t) == vehicles(a).vehicleID
                             vehicID = vehicles(a).vehicleID;
                             break;
                         end
                     end
-                    %set new speed to the vehicle 
-                    vehicles(vehicID).v = min([(vehicles(vehicID).v+1), obj.v_max, vehicles(vehicID).v_max]);
+                    %did the vehicle generate already? skip this cell
+                    if vehicles(vehicID).switchToThisRoad == -2
+                        continue;
+                    end
+
+                    vehicles(vehicID).v = min([vehicles(vehicID).v+1, obj.v_max, vehicles(vehicID).v_max]);
                 end
             end
 
             %bremsen
             for alpha=1:length(obj.cells)
                 gap=0;
-                if obj.cells(alpha)==0
+                %empty?
+                if (obj.cells(alpha) == 0) || (obj.cells(alpha) <= -1)
                     continue;
                 end
-                for x=alpha+1:length(obj.cells)
-                    if (obj.cells(x) == 0)
-                        gap = gap+1;
-                    else
-                        break;
-                    end
-                end                
+                
+                %not empty, search vehicleID
                 for a=1:length(vehicles)
                     if (obj.cells(alpha) == vehicles(a).vehicleID)
                         vehicID = vehicles(a).vehicleID;
@@ -130,8 +130,64 @@ classdef road < handle
                     end
                 end
                 
-                if vehicles(vehicID).v > gap
-                    vehicles(vehicID).v = gap;
+                %did the vehicle generate already? skip this cell
+                if vehicles(vehicID).switchToThisRoad == -2
+                    continue;
+                end
+                
+                %will the vehicle reach the end of the road in this
+                %generation? determinate the new road and block the place
+                %where the vehicle is going to be
+                if (vehicles(vehicID).switchToThisRoad ~= -1) || (alpha+vehicles(vehicID).v) > length(obj.cells)
+                    %opportunities to drive next
+                    tempNeighbours = get_neighbours(roads, obj.to);
+                    vehicles(vehicID).switchToThisRoad = tempNeighbours(randi(length(tempNeighbours)));
+                    
+                    for a = 1:length(roads)
+                        if roads(a).roadID == vehicles(vehicID).switchToThisRoad
+                            tempRoadID = a;
+                            break;
+                        end
+                    end
+                    
+                    %the number of cells the car would drive too far on the
+                    %current road
+                    %disp([num2str(alpha+vehicles(vehicID).v) '-v' num2str(vehicles(vehicID).v) '-length' num2str(length(obj.cells))]);
+                    
+                    XCellsTooFar = (alpha+vehicles(vehicID).v) - length(obj.cells);
+                    gapOnNewStreet = 0;
+                    for i=1:XCellsTooFar
+                        if roads(tempRoadID).cells(i) == 0
+                        	%block the road segments where the vehicle is going to
+                            %drive so no other car is turning into this street at
+                            %the same time
+                            gapOnNewStreet = gapOnNewStreet+1;
+                            roads(tempRoadID).cells(i) = -vehicID;
+                        else
+                            break;
+                        end
+                    end
+                end
+                
+                freeDrive=true;
+                %calculate the gap
+                for x=alpha+1:length(obj.cells)
+                    if obj.cells(x) == 0
+                        gap = gap+1;
+                    else
+                        freeDrive = false;
+                        break;
+                    end
+                end
+
+                if (vehicles(vehicID).switchToThisRoad == -1)
+                    if (vehicles(vehicID).v > gap)
+                        vehicles(vehicID).v = gap;
+                    end
+                else
+                    if freeDrive
+                        vehicles(vehicID).v = gap+gapOnNewStreet;
+                    end
                 end
             end
 
@@ -146,9 +202,15 @@ classdef road < handle
                             end
                         end 
                         
-                        %if the vehicle isnt standing
-                        if (vehicles(vehicID).v) > 0
-                            vehicles(vehicID).v = vehicles(vehicID).v - 1;
+                        %did the vehicle generate already? skip this cell
+                        if vehicles(vehicID).switchToThisRoad == -2
+                            continue;
+                        end
+                        
+                        %if the vehicle isnt standing and not about to
+                        %switch roads
+                        if (vehicles(vehicID).v) > 0 && (vehicles(vehicID).switchToThisRoad == -1)
+                            %TODO vehicles(vehicID).v = vehicles(vehicID).v - 1;
                         end
                     end
                 end
@@ -156,7 +218,7 @@ classdef road < handle
 
             %bewegen
             for alpha=length(obj.cells):-1:1
-                if (obj.cells(alpha)~=0)
+                if obj.cells(alpha)~=0
                     for a=1:length(vehicles)
                         if (obj.cells(alpha) == vehicles(a).vehicleID)
                             vehicID = vehicles(a).vehicleID;
@@ -164,8 +226,50 @@ classdef road < handle
                         end
                     end 
                     
-                    disp(['sollte 0 sein: ' num2str(obj.cells(alpha+vehicles(vehicID).v))]);
-                    obj.cells(alpha+vehicles(vehicID).v) = vehicles(vehicID).vehicleID;
+                    %did the vehicle generate already? skip this cell
+                    if vehicles(vehicID).switchToThisRoad == -2
+                        continue;
+                    end
+                    
+                    %disp(['sollte 0 sein: ' num2str(obj.cells(alpha+vehicles(vehicID).v))]);
+                    if vehicles(vehicID).switchToThisRoad == -1
+                        obj.cells(alpha+vehicles(vehicID).v) = vehicles(vehicID).vehicleID;
+
+                    else %vehicle is changing lanes
+                        %get roadID
+                        for a = 1:length(roads)
+                            if roads(a).roadID == vehicles(vehicID).switchToThisRoad
+                                tempRoadID = a;
+                                break;
+                            end
+                        end
+                        
+                        if alpha+vehicles(vehicID).v > length(obj.cells)
+                            XCellsTooFar = (alpha+vehicles(vehicID).v) - length(obj.cells);
+                            for b=1:XCellsTooFar
+                                if roads(tempRoadID).cells(b) >0 %vehicle blocking the way?
+                                    if b ~= 1 %1st position of the new road blocked?
+                                        roads(tempRoadID).cells(b-1)=vehicID;
+                                        vehicles(vehicID).switchToThisLane = -1;
+                                        break;
+                                    end
+                                %road is reserved, but for which vehicle?
+                                elseif abs(roads(tempRoadID).cells(b)) == vehicles(vehicID).vehicleID
+                                    if b==XCellsTooFar %vehicle can drive all the way on the new road
+                                        roads(tempRoadID).cells(b)=vehicID;
+                                        %-2 indicates that the vehicle just
+                                        %moved to prevent a vehicle moving
+                                        %several times in one generation
+                                        vehicles(vehicID).switchToThisRoad = -2;  
+                                    else %delete reservation
+                                        roads(tempRoadID).cells(b) = 0;    
+                                    end
+                                end %TODO else, road is reserved but not for this car. speed is still maximum, but car isnt moving
+                            end
+                        end                        
+                    end
+                    
+                    %remove the vehicle from its old position
                     if vehicles(vehicID).v ~= 0
                         obj.cells(alpha) = 0;
                     end
