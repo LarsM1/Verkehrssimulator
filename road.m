@@ -83,14 +83,24 @@ classdef road < handle
                     temp2=(ydist/length(obj.cells))*j;
                     dir = obj.getDirection(bounds);
                     
-                    if dir==1 dirString='>';
-                        elseif dir==2 dirString='^';
-                        elseif dir==3 dirString='<';
-                        else dirString='v';
+                    offsetX = 0;
+                    offsetY = 0;
+                    if dir==1
+                        dirString='>';
+                        offsetY = -0.00007;
+                    elseif dir==2
+                        dirString='^';
+                        offsetX = 0.00007;
+                    elseif dir==3
+                        dirString='<';
+                        offsetY = 0.00007;
+                    else
+                        dirString='v';
+                        offsetX = -0.00007;
                     end
-                    
-                    circles=[circles line('Parent', ax,'XData',obj.start_coordinate(1)-temp1, 'YData',obj.start_coordinate(2)-temp2, 'Color','r', ...
-                               'Marker',dirString, 'MarkerSize',4)];
+
+                    circles=[circles line('Parent', ax,'XData',obj.start_coordinate(1)-temp1+offsetX, 'YData',obj.start_coordinate(2)-temp2+offsetY, 'Color','r', ...
+                               'Marker',dirString, 'MarkerSize',6, 'MarkerFaceColor', 'y', 'MarkerEdgeColor', 'k')];
                 end
             end
         end
@@ -250,7 +260,8 @@ classdef road < handle
                                 if roads(tempRoadID).cells(b) >0 %vehicle blocking the way?
                                     if b ~= 1 %1st position of the new road blocked?
                                         roads(tempRoadID).cells(b-1)=vehicID;
-                                        vehicles(vehicID).switchToThisLane = -1;
+                                        vehicles(vehicID).switchToThisRoad = -1;
+                                        %TODO error?
                                         break;
                                     end
                                 %road is reserved, but for which vehicle?

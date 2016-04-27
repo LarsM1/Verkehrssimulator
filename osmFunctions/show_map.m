@@ -25,7 +25,7 @@ plot(ax, [bounds(1,1), bounds(1,1), bounds(1,2), bounds(1,2), bounds(1,1)],...
 
 xlabel(ax, 'Longitude (^o)')
 ylabel(ax, 'Latitude (^o)')
-title(ax, 'OpenStreetMap osm file')
+%title(ax, 'OpenStreetMap osm file')
 
 axis(ax, 'image')
 axis(ax, [bounds(1, :), bounds(2, :) ] )

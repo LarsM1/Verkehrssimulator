@@ -49,31 +49,40 @@ connectivity_matrix(210,195)=1;
 roads = create_roads(connectivity_matrix,uniquend.id, intersection_node_indices);
 
 %% create test vehicles and place on street
-vehicles = vehicle(1,2,2);
-vehicles = [vehicles vehicle(2,2,2)];
-vehicles = [vehicles vehicle(3,2,2)];
-vehicles = [vehicles vehicle(4,2,3)];
-vehicles = [vehicles vehicle(5,2,3)];
-vehicles = [vehicles vehicle(6,2,3)];
-vehicles = [vehicles vehicle(7,2,3)];
-vehicles = [vehicles vehicle(8,2,3)];
-
-roads(3).cells(length(roads(3).cells)-5) = vehicles(1).vehicleID;
-roads(8).cells(length(roads(10).cells)-5) = vehicles(2).vehicleID;
-roads(1).cells(length(roads(1).cells)) = vehicles(3).vehicleID;
-
-roads(3).cells(1) = vehicles(4).vehicleID;
-roads(3).cells(5) = vehicles(5).vehicleID;
-roads(9).cells(5) = vehicles(6).vehicleID;
-roads(11).cells(1) = vehicles(7).vehicleID;
-roads(15).cells(1) = vehicles(8).vehicleID;
+% vehicles = vehicle(1,2,2);
+% vehicles = [vehicles vehicle(2,2,2)];
+% vehicles = [vehicles vehicle(3,2,2)];
+% vehicles = [vehicles vehicle(4,2,3)];
+% vehicles = [vehicles vehicle(5,2,3)];
+% vehicles = [vehicles vehicle(6,2,3)];
+% vehicles = [vehicles vehicle(7,2,3)];
+% vehicles = [vehicles vehicle(8,2,3)];
+% 
+% roads(3).cells(length(roads(3).cells)-5) = vehicles(1).vehicleID;
+% roads(8).cells(length(roads(10).cells)-5) = vehicles(2).vehicleID;
+% roads(1).cells(length(roads(1).cells)) = vehicles(3).vehicleID;
+% 
+% roads(3).cells(1) = vehicles(4).vehicleID;
+% roads(3).cells(5) = vehicles(5).vehicleID;
+% roads(9).cells(5) = vehicles(6).vehicleID;
+% roads(11).cells(1) = vehicles(7).vehicleID;
+% roads(15).cells(1) = vehicles(8).vehicleID;
 
 
 %% move cars
 circles=[];
+vehicles=[];
 while(true)
-    pause(1);
+    pause(0.1);
     
+    %spawn random vehicles on random roads
+    if (rand(1)>0.2)
+        vehicles = [vehicles vehicle(length(vehicles)+1,randi([2,5]),randi([2,5]))];
+        if roads(randi([1,length(roads)])).cells(1) == 0 
+            roads(randi([1,length(roads)])).cells(1) = vehicles(length(vehicles)).vehicleID;
+        end
+        title (ax,['Vehicle count: ' num2str(length(vehicles))]);
+    end
     %generate
 	for i=1:length(roads)
         roads(i).generate(vehicles,roads);
@@ -85,16 +94,28 @@ while(true)
     end
 	circles=[];
     
+    carCount = 0;
+
     %remove reservation cells (== -1) and update map
     for i=1:length(roads)
         for j=1:length(roads(i).cells)
             if roads(i).cells(j) == -1
-                roads(i).cells(j) = 0;
+                %roads(i).cells(j) = 0;
+                error('ERROR');
+            end
+            
+            %test if car disappeared
+            if roads(i).cells(j) >0
+                carCount = carCount +1;
             end
         end
+       
         circles = roads(i).draw(circles, ax,parsed_osm.bounds);
     end
     
+	if carCount~=length(vehicles)
+        error(['vehicles disappeared' num2str(carCount) '--' num2str(length(vehicles))]);
+	end
     %reset already-moved-status of vehicles (switchToThisRoad == -2) 
     for i=1:length(vehicles)
         if vehicles(i).switchToThisRoad == -2
@@ -113,17 +134,3 @@ end
 %bbb=([parsed_osm.bounds(2),parsed_osm.bounds(4)]);
 %from=find(intersection_node_indices==arr(1).from)
 %to=find(intersection_node_indices==arr(1).to)
-
-%start=stuff(:,from)
-%endd=stuff(:,to)
-
-
-%%
-% stuff = uniquend.id
-% for i=1:length(stuff)
-%     disp(stuff(1,i)) 
-%     disp(stuff(2,i))
-%     
-%     disp(intersection_node_indices(i))
-%     disp('---')
-% end
