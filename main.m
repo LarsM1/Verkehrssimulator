@@ -7,7 +7,7 @@ map_img_filename = 'map.png'; % image file saved from online, if available
 %convert XML -> MATLAB struct
 [parsed_osm, osm_xml] = parse_openstreetmap(openstreetmap_filename);
 
-%% plot
+%% plot 3
 fig = figure;
 ax = axes('Parent', fig);
 hold('on')
