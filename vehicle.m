@@ -7,6 +7,12 @@ classdef vehicle < handle
         v_max
         v
         switchToThisRoad %changes to this road when the end of the current road is reached
+                         %is -1 by default
+                         %is -2 after the vehicle changes a lane (to
+                         %prevent another lane change/velocity increase in
+                         %the same generation
+                         %is -3 
+        switchToThisLane
     end
     
     methods
@@ -16,6 +22,7 @@ classdef vehicle < handle
             obj.v_max = v_max;
             obj.v = v;
             obj.switchToThisRoad = -1;
+            obj.switchToThisLane = -1;
         end
         
         %returns the position on the road
