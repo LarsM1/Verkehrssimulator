@@ -11,7 +11,6 @@ map_img_filename = 'map.png'; % image file saved from online, if available
 fig = figure;
 ax = axes('Parent', fig);
 hold('on')
-ylim([-2000 2000]) 
 
 % plot the network
 plot_way(ax, parsed_osm, map_img_filename) % if you also have a raster image
@@ -49,86 +48,86 @@ while(true)
 %create road objects out of the parsed data
 roads = create_roads(connectivity_matrix,uniquend.id, intersection_node_indices,parsed_osm.bounds);
 
+%create roads to enter/exit the network
+%enter road
+enterRoad=road(length(roads)+1,-1,188,[parsed_osm.bounds(1,1);uniquend.id(2,1)],uniquend.id(:,1),5,1,parsed_osm.bounds);
+exitRoad=road(length(roads)+2,195,-2,[uniquend.id(1,6);parsed_osm.bounds(2,2)-0.001],uniquend.id(:,6),5,1,parsed_osm.bounds);
+roads=[roads enterRoad exitRoad];
+entryExitRoads = [length(roads); length(roads)-1];
 %% create test vehicles and place on street
- speed1=randi(5);
- speed2=randi(5);
- speed3=randi(5);
- speed4=randi(5);
- speed5=randi(5);
- speed6=randi(5);
- speed7=randi(5);
+%  speed1=randi(5);
+%  speed2=randi(5);
+%  speed3=randi(5);
+%  speed4=randi(5);
+%  speed5=randi(5);
+%  speed6=randi(5);
+%  speed7=randi(5);
  
-vehicles = vehicle(1,speed7,1);
-%vehicles = [vehicles vehicle(2,speed1,1)];
-%vehicles = [vehicles vehicle(3,speed2,1)];
-%vehicles = [vehicles vehicle(4,speed3,0)];
-%vehicles = [vehicles vehicle(5,speed4,1)];
-%vehicles = [vehicles vehicle(6,speed5,1)];
-%vehicles = [vehicles vehicle(7,speed6,1)];
+%vehicles = vehicle(1,1,1);
+% vehicles = [vehicles vehicle(2,speed1,1)];
+% vehicles = [vehicles vehicle(3,speed2,1)];
+% vehicles = [vehicles vehicle(4,speed3,0)];
+% vehicles = [vehicles vehicle(5,speed4,1)];
+% vehicles = [vehicles vehicle(6,speed5,1)];
+% vehicles = [vehicles vehicle(7,speed6,1)];
 
-yo1=randi(5);
-yo2=randi(5);
-yo3=randi(5);
-yo4=randi(5);
-yo5=randi(5);
-yo6=randi(5);
-yo7=randi(5);
+% yo1=randi(5);
+% yo2=randi(5);
+% yo3=randi(5);
+% yo4=randi(5);
+% yo5=randi(5);
+% yo6=randi(5);
+% yo7=randi(5);
+% 
+% while yo1==yo5
+%     yo5=randi(5);
+% end
+% 
+% while yo2==yo6
+%     yo6=randi(5);
+% end
+% while yo3==yo7
+%     yo7=randi(5);
+% end
+% 
+% n=length(roads);
+% m=4;
+% r=randperm(n);
+% r=r(1:m);
 
-while yo1==yo5
-    yo5=randi(5);
-end
+%roads(17).cells(roads(17).lanes,length(roads(17).cells)-2) = vehicles(1).vehicleID;
 
-while yo2==yo6
-    yo6=randi(5);
-end
-while yo3==yo7
-    yo7=randi(5);
-end
-
-n=length(roads);
-m=4;
-r=randperm(n);
-r=r(1:m);
-     
-roads(11).cells(2,1) = vehicles(1).vehicleID;
-%roads(r(1)).cells(length(roads(r(1)).cells)-yo5) = vehicles(2).vehicleID;
-%roads(r(2)).cells(length(roads(r(2)).cells)-yo2) = vehicles(3).vehicleID;
-%roads(r(2)).cells(length(roads(r(2)).cells-yo6)) = vehicles(4).vehicleID;
-%roads(r(3)).cells(length(roads(r(3)).cells)-yo3) = vehicles(5).vehicleID;
-%roads(r(3)).cells(length(roads(r(3)).cells)-yo7) = vehicles(6).vehicleID;
-%roads(r(4)).cells(length(roads(r(4)).cells)-yo4) = vehicles(7).vehicleID;
-
-%roads(2).cells(length(roads(2).cells)-1) = vehicles(1).vehicleID;
-%roads(9).cells(length(roads(9).cells)) = vehicles(2).vehicleID;
-
- %roads(1).cells(length(roads(1).cells)-1) = vehicles(1).vehicleID;
- %roads(16).cells(length(roads(16).cells)-2) = vehicles(2).vehicleID;
-
+% roads(r(1)).cells(length(roads(r(1)).cells)-yo1) = vehicles(1).vehicleID;
+% roads(r(1)).cells(length(roads(r(1)).cells)-yo5) = vehicles(2).vehicleID;
+% roads(r(2)).cells(length(roads(r(2)).cells)-yo2) = vehicles(3).vehicleID;
+% roads(r(2)).cells(length(roads(r(2)).cells-yo6)) = vehicles(4).vehicleID;
+% roads(r(3)).cells(length(roads(r(3)).cells)-yo3) = vehicles(5).vehicleID;
+% roads(r(3)).cells(length(roads(r(3)).cells)-yo7) = vehicles(6).vehicleID;
+% roads(r(4)).cells(length(roads(r(4)).cells)-yo4) = vehicles(7).vehicleID;
 
 %% move cars
 circles=[];
-%vehicles=[];
+vehicles=[];
 count=0;
 while(true)
-    pause(0.3);
-    disp('loop');
+    pause(0.05);
+    %disp('loop');
     count = count+1;
-    if count>15
-       % break;
+    if count>50
+        %break;
     end
     %spawn random vehicles on random roads
-    if (rand(1) > 2)
-        vehicles = [vehicles vehicle(length(vehicles)+1,randi([2,5]),randi([2,5]))];
-        thisroad = randi([1,length(roads)]);
-        thisLane = randi(roads(thisroad).lanes);
-        if roads(thisroad).cells(thisLane,round(length(roads(thisroad).cells)/2)) == 0 
-            roads(thisroad).cells(thisLane,round(length(roads(thisroad).cells)/2)) = vehicles(length(vehicles)).vehicleID;
+    if (rand(1) > 0.2)
+        %spawn random cars in the entering street (bottom left)
+        if roads(18).cells(1) == 0 
+            vehicles = [vehicles vehicle(length(vehicles)+1,2,2)];
+            roads(18).cells(1) = vehicles(length(vehicles)).vehicleID;
         end
         title (ax,['Vehicle count: ' num2str(length(vehicles))]);
     end
     %generate
 	for i=1:length(roads)
-        roads(i).generate(vehicles,roads);
+        [roads,vehicles] = roads(i).generate(vehicles,roads);
 	end
     
     %delete old car arrows
@@ -136,33 +135,34 @@ while(true)
         delete(circles(i));
     end
 	circles=[];
-    
-    carCount = 0;
+    carCount =[];
 
     %remove reservation cells (== -1) and update map
     for i=1:length(roads)
-        for j=1:length(roads(i).cells)
-            if roads(i).cells(j) == -1
-                roads(i).cells(j) = 0;
-                %error('ERROR - cell -1');
-            end
-            
-            %test if car disappeared
-            if roads(i).cells(j) >0
-                carCount = carCount +1;
+        for k=1:roads(i).lanes
+            for j=1:length(roads(i).cells)
+                if roads(i).cells(k,j) == -1
+                    roads(i).cells(k,j) = 0;
+                    error('ERROR - cell -1');
+                end
+
+                %test if car disappeared
+                if roads(i).cells(k,j) >0
+                    carCount = [carCount roads(i).cells(k,j)];
+                end
             end
         end
         circles = roads(i).draw(circles, ax,parsed_osm.bounds);
     end
     
-	if carCount ~= length(vehicles)
-        %error(['vehicles disappeared' num2str(carCount) '--' num2str(length(vehicles))]);
+	if length(carCount) ~= length(vehicles)
+        error(['vehicles disappeared' num2str(length(carCount)) '--' num2str(length(vehicles))]);
 	end
     %reset already-moved-status of vehicles (switchToThisRoad == -2) 
     for i=1:length(vehicles)
         if vehicles(i).switchToThisRoad == -2
-           vehicles(i).switchToThisRoad = -1; 
-           vehicles(i).switchToThisLane = -1;
+            vehicles(i).switchToThisRoad = -1; 
+            vehicles(i).switchToThisLane = -1;
         end
     end
 end

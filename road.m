@@ -47,7 +47,6 @@ classdef road < handle
             x2=obj.end_coordinate(1)-bounds(1,1);
             y2=obj.end_coordinate(2)-bounds(2,1);
             
-            
             if (x1 == x2)
                 if y2 > y1
                 	%angle = 0.5*180;
@@ -69,7 +68,7 @@ classdef road < handle
             end
             angle = angle * (180/pi);
 
-            if (angle>225 && angle<=315)
+            if (angle > 225 && angle <= 315)
                 dir = 4;
             elseif (angle>45 && angle<=135)
                 dir = 2;
@@ -114,14 +113,14 @@ classdef road < handle
             end
         end
         
-        function generate(obj,vehicles,roads)
+        function [roads,vehicles] = generate(obj,vehicles,roads)
             %beschleunigen
             for cell=1:length(obj.cells)
                 for lane=1:obj.lanes
                     if obj.cells(lane,cell) > 0
                         for a=1:length(vehicles)
                             if obj.cells(lane,cell) == vehicles(a).vehicleID
-                                vehicID = vehicles(a).vehicleID;
+                                vehicID = a ;
                                 break;
                             end
                         end
@@ -147,7 +146,7 @@ classdef road < handle
                     %not empty, search vehicleID
                     for a=1:length(vehicles)
                         if (obj.cells(lane,alpha) == vehicles(a).vehicleID)
-                            vehicID = vehicles(a).vehicleID;
+                            vehicID = a;
                             break;
                         end
                     end
@@ -177,9 +176,18 @@ classdef road < handle
                         if vehicles(vehicID).switchToThisRoad == -1
                             %opportunities to drive next
                             tempNeighbours = get_neighbours(roads, obj.to);
-                            vehicles(vehicID).switchToThisRoad = tempNeighbours(randi(length(tempNeighbours)));
-                            vehicles(vehicID).switchToThisLane = randi(roads(vehicles(vehicID).switchToThisRoad).lanes);
+                            %is there no road to drive to? -->vehicle is on
+                            %an exit road: delete it
+                            if isempty(tempNeighbours)
+                                obj.cells(lane,alpha) = 0;
+                                vehicles = vehicles(vehicles~=vehicles(vehicID));
+                                continue;
+                            else
+                                vehicles(vehicID).switchToThisRoad = tempNeighbours(randi(length(tempNeighbours)));
+                            end
                         end
+                        %choose a new lane randomly each time
+                        vehicles(vehicID).switchToThisLane = randi(roads(vehicles(vehicID).switchToThisRoad).lanes);
 
                         for a = 1:length(roads)
                             if roads(a).roadID == vehicles(vehicID).switchToThisRoad
@@ -200,7 +208,7 @@ classdef road < handle
                                 %block the road segments where the vehicle is going to
                                 %drive so no other car is turning into this street at
                                 %the same time
-                                gapOnNewStreet = gapOnNewStreet+1;
+                                gapOnNewStreet = gapOnNewStreet + 1;
                                 %reserve this cell
                                 roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,i) = -vehicID;
                             else
@@ -231,7 +239,7 @@ classdef road < handle
 %                         if rand(1)>0.9
 %                             for a=1:length(vehicles)
 %                                 if (obj.cells(lane,alpha) == vehicles(a).vehicleID)
-%                                     vehicID = vehicles(a).vehicleID;
+%                                     vehicID = a;
 %                                     break;
 %                                 end
 %                             end 
@@ -257,7 +265,7 @@ classdef road < handle
                     if obj.cells(lane,alpha) > 0
                         for a=1:length(vehicles)
                             if (obj.cells(lane,alpha) == vehicles(a).vehicleID)
-                                vehicID = vehicles(a).vehicleID;
+                                vehicID = a;
                                 break;
                             end
                         end
@@ -269,7 +277,7 @@ classdef road < handle
 
                         if vehicles(vehicID).switchToThisRoad == -1
                             if (obj.cells(lane,alpha+vehicles(vehicID).v) == 0)
-                                obj.cells(lane,alpha+vehicles(vehicID).v) = vehicles(vehicID).vehicleID;
+                                obj.cells(lane,alpha+vehicles(vehicID).v) = vehicID;
                             end
                         else %vehicle is changing lanes
                             %get roadID
@@ -299,7 +307,7 @@ classdef road < handle
                                     end
 
                                     %road is reserved, but for which vehicle?
-                                    if -1 * (roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b)) == vehicles(vehicID).vehicleID
+                                    if -1 * (roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b)) == vehicID
                                         if b == XCellsTooFar %vehicle can drive all the way on the new road
                                             if roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b)>0
                                                 error('error1');
@@ -327,7 +335,11 @@ classdef road < handle
 
                         %remove the vehicle from its old position
                         if vehicles(vehicID).v > 0
-                            if vehicles(vehicID).vehicleID ~= obj.cells(lane,alpha)
+                            if vehicID ~= obj.cells(lane,alpha)
+                                
+                                
+                                
+                                
                                 error('error3');
                             end
                             obj.cells(lane, alpha) = 0;
