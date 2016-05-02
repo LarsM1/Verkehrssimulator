@@ -50,9 +50,18 @@ roads = create_roads(connectivity_matrix,uniquend.id, intersection_node_indices,
 
 %create roads to enter/exit the network
 %enter road
-enterRoad=road(length(roads)+1,-1,188,[parsed_osm.bounds(1,1);uniquend.id(2,1)],uniquend.id(:,1),5,1,parsed_osm.bounds);
-exitRoad=road(length(roads)+2,195,-2,[uniquend.id(1,6);parsed_osm.bounds(2,2)-0.001],uniquend.id(:,6),5,1,parsed_osm.bounds);
-roads=[roads enterRoad exitRoad];
+startID=188;
+enterRoad = road(length(roads)+1,-1,startID,...
+                [parsed_osm.bounds(1,1); uniquend.id(2,find(intersection_node_indices==startID))],...
+                uniquend.id(:,find(intersection_node_indices==startID)),...
+                5,1,parsed_osm.bounds);
+
+endID=195;
+exitRoad = road(length(roads)+2,endID,-2,...
+                uniquend.id(:,find(intersection_node_indices==endID)),...
+                [uniquend.id(1,find(intersection_node_indices==endID)); parsed_osm.bounds(2,2)+0.001],...
+                5,1,parsed_osm.bounds);
+roads = [roads enterRoad exitRoad];
 entryExitRoads = [length(roads); length(roads)-1];
 %% create test vehicles and place on street
 %  speed1=randi(5);
@@ -63,9 +72,9 @@ entryExitRoads = [length(roads); length(roads)-1];
 %  speed6=randi(5);
 %  speed7=randi(5);
  
-%vehicles = vehicle(1,1,1);
-% vehicles = [vehicles vehicle(2,speed1,1)];
-% vehicles = [vehicles vehicle(3,speed2,1)];
+vehicles = vehicle(1,2,2);
+vehicles = [vehicles vehicle(2,2,2)];
+vehicles = [vehicles vehicle(3,2,2)];
 % vehicles = [vehicles vehicle(4,speed3,0)];
 % vehicles = [vehicles vehicle(5,speed4,1)];
 % vehicles = [vehicles vehicle(6,speed5,1)];
@@ -95,7 +104,9 @@ entryExitRoads = [length(roads); length(roads)-1];
 % r=randperm(n);
 % r=r(1:m);
 
-%roads(17).cells(roads(17).lanes,length(roads(17).cells)-2) = vehicles(1).vehicleID;
+roads(19).cells(roads(19).lanes,1) = vehicles(2).vehicleID;
+roads(3).cells(roads(3).lanes,1) = vehicles(1).vehicleID;
+roads(4).cells(roads(4).lanes,1) = vehicles(3).vehicleID;
 
 % roads(r(1)).cells(length(roads(r(1)).cells)-yo1) = vehicles(1).vehicleID;
 % roads(r(1)).cells(length(roads(r(1)).cells)-yo5) = vehicles(2).vehicleID;
@@ -107,10 +118,11 @@ entryExitRoads = [length(roads); length(roads)-1];
 
 %% move cars
 circles=[];
-vehicles=[];
+%vehicles=[];
 count=0;
+ID_counter=1;
 while(true)
-    pause(0.05);
+    pause(0.01);
     %disp('loop');
     count = count+1;
     if count>50
@@ -120,7 +132,8 @@ while(true)
     if (rand(1) > 0.2)
         %spawn random cars in the entering street (bottom left)
         if roads(18).cells(1) == 0 
-            vehicles = [vehicles vehicle(length(vehicles)+1,2,2)];
+            vehicles = [vehicles vehicle(ID_counter,2,2)];
+            ID_counter = ID_counter + 1;
             roads(18).cells(1) = vehicles(length(vehicles)).vehicleID;
         end
         title (ax,['Vehicle count: ' num2str(length(vehicles))]);

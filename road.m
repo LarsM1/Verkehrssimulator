@@ -210,7 +210,7 @@ classdef road < handle
                                 %the same time
                                 gapOnNewStreet = gapOnNewStreet + 1;
                                 %reserve this cell
-                                roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,i) = -vehicID;
+                                roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,i) = -(vehicles(vehicID).vehicleID);
                             else
                                 break;
                             end
@@ -277,7 +277,7 @@ classdef road < handle
 
                         if vehicles(vehicID).switchToThisRoad == -1
                             if (obj.cells(lane,alpha+vehicles(vehicID).v) == 0)
-                                obj.cells(lane,alpha+vehicles(vehicID).v) = vehicID;
+                                obj.cells(lane,alpha+vehicles(vehicID).v) = vehicles(vehicID).vehicleID;
                             end
                         else %vehicle is changing lanes
                             %get roadID
@@ -294,20 +294,11 @@ classdef road < handle
 
                                 for b=1:XCellsTooFar
                                     if roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b) > 0 %vehicle blocking the way?
-                                        error('error1');
-    %                                     if b ~= 1 %1st position of the new road blocked?
-    %                                         if roads(tempRoadID).cells(b-1) ~=0
-    %                                             error('error2');
-    %                                         end
-    %                                         roads(tempRoadID).cells(b-1) = vehicID;
-    %                                         vehicles(vehicID).switchToThisRoad = -1;
-    %                                         %TODO error?
-    %                                         break;
-    %                                     end
+                                        error('error2');
                                     end
 
                                     %road is reserved, but for which vehicle?
-                                    if -1 * (roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b)) == vehicID
+                                    if -1 * (roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b)) == vehicles(vehicID).vehicleID
                                         if b == XCellsTooFar %vehicle can drive all the way on the new road
                                             if roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b)>0
                                                 error('error1');
@@ -315,7 +306,7 @@ classdef road < handle
                                             if roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,XCellsTooFar)>0
                                                 disp('error6');
                                             end
-                                            roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,XCellsTooFar) = vehicID;
+                                            roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,XCellsTooFar) = vehicles(vehicID).vehicleID;
                                             %-2 indicates that the vehicle just
                                             %moved to prevent a vehicle moving
                                             %several times in one generation
@@ -335,7 +326,7 @@ classdef road < handle
 
                         %remove the vehicle from its old position
                         if vehicles(vehicID).v > 0
-                            if vehicID ~= obj.cells(lane,alpha)
+                            if vehicles(vehicID).vehicleID ~= obj.cells(lane,alpha)
                                 
                                 
                                 
@@ -344,29 +335,25 @@ classdef road < handle
                             end
                             obj.cells(lane, alpha) = 0;
                         end
-
-
-                        carss=[]; 
-                        for i=1:length(roads)
-                            for k=1:roads(i).lanes
-                                for j=1:length(roads(i).cells)           
-                                    %test if car disappeared
-                                    if roads(i).cells(k,j) > 0
-                                        carss=[carss roads(i).cells(k,j)];
-                                    end
-                                end
-                            end
-                        end
-
-                        if length(carss) ~= length(vehicles)
-
-
-
-
-                            %error(['vehicles disappeared' num2str(carCount) '--' num2str(length(vehicles))]);
-                        end
-
-
+%                         carss=[]; 
+%                         for i=1:length(roads)
+%                             for k=1:roads(i).lanes
+%                                 for j=1:length(roads(i).cells)           
+%                                     %test if car disappeared
+%                                     if roads(i).cells(k,j) > 0
+%                                         carss=[carss roads(i).cells(k,j)];
+%                                     end
+%                                 end
+%                             end
+%                         end
+% 
+%                         if length(carss) ~= length(vehicles)
+% 
+% 
+% 
+% 
+%                             %error(['vehicles disappeared' num2str(carCount) '--' num2str(length(vehicles))]);
+%                         end
                     end
                 end
             end
