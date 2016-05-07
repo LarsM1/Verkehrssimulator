@@ -13,6 +13,7 @@ classdef vehicle < handle
                          %the same generation
                          %is -3 
         switchToThisLane
+        status %1=accelerating 2=trödeln 3=bremsen
     end
     
     methods
@@ -25,10 +26,6 @@ classdef vehicle < handle
             obj.switchToThisLane = -1;
         end
         
-        %returns the position on the road
-        function out = getPositionOnRoad(obj, roads)
-
-        end
     end
     
 end

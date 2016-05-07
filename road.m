@@ -9,7 +9,7 @@ classdef road < handle
         end_coordinate %coordinates
         v_max
         lanes 
-        cells %where the vehicles are stored
+        cells %where the vehicles are stored    
     end
 
     methods
@@ -79,13 +79,13 @@ classdef road < handle
             end
         end
         
-        function circles = draw(obj,circles,ax,bounds)
+        function circles = draw(obj,circles,ax,bounds,vehicles)
             %x/y distance from start to fin
             xdist=(obj.start_coordinate(1)-obj.end_coordinate(1));
             ydist=(obj.start_coordinate(2)-obj.end_coordinate(2));
             for j=1:length(obj.cells)
-                for k=1:obj.lanes
-                    if (obj.cells(k,j)~=0)
+                for lane=1:obj.lanes
+                    if (obj.cells(lane,j) ~= 0)                        
                         temp1=(xdist/length(obj.cells))*j;
                         temp2=(ydist/length(obj.cells))*j;
                         dir = obj.getDirection(bounds);
@@ -94,20 +94,42 @@ classdef road < handle
                         offsetY = 0;
                         if dir==1
                             dirString='>';
-                            offsetY = -0.00007*k;
+                            offsetY = -0.00007*lane;
                         elseif dir==2
                             dirString='^';
-                            offsetX = 0.00007*k;
+                            offsetX = 0.00007*lane;
                         elseif dir==3
                             dirString='<';
-                            offsetY = 0.00007*k;
+                            offsetY = 0.00007*lane;
                         else
                             dirString='v';
-                            offsetX = -0.00007*k;
+                            offsetX = -0.00007*lane;
+                        end
+
+                        %get vehicle
+                        for a=1:length(vehicles)
+                            if (obj.cells(lane,j) == vehicles(a).vehicleID)
+                                vehicID = a;
+                                break;
+                            end
+                        end
+                        
+                        if vehicles(vehicID).v == vehicles(vehicID).v_max %max vehicle speed
+                            color = 'g';
+                        elseif vehicles(vehicID).v == obj.v_max %max road speed
+                            color = 'y';
+                        elseif vehicles(vehicID).v == 0 %standing
+                            color = 'k';
+                        elseif vehicles(vehicID).status == 1 %accelerating
+                            color = 'b';
+                        elseif vehicles(vehicID).status == 2 %trödeln
+                            color = 'm';
+                        else %breaking
+                            color = 'r';
                         end
 
                         circles=[circles line('Parent', ax,'XData',obj.start_coordinate(1)-temp1+offsetX, 'YData',obj.start_coordinate(2)-temp2+offsetY, 'Color','r', ...
-                                   'Marker',dirString, 'MarkerSize',6, 'MarkerFaceColor', 'y', 'MarkerEdgeColor', 'k')];
+                                   'Marker',dirString, 'MarkerSize',6, 'MarkerFaceColor', color, 'MarkerEdgeColor', 'k')];
                     end
                 end
             end
@@ -116,9 +138,9 @@ classdef road < handle
         function [roads,vehicles] = generate(obj,vehicles,roads)
             %beschleunigen
             for cell=1:length(obj.cells)
-                for lane=1:obj.lanes
+                for lane = 1:obj.lanes
                     if obj.cells(lane,cell) > 0
-                        for a=1:length(vehicles)
+                        for a = 1:length(vehicles)
                             if obj.cells(lane,cell) == vehicles(a).vehicleID
                                 vehicID = a ;
                                 break;
@@ -131,6 +153,7 @@ classdef road < handle
                         end
 
                         vehicles(vehicID).v = min([vehicles(vehicID).v+1, obj.v_max, vehicles(vehicID).v_max]);
+                        vehicles(vehicID).status = 1;
                     end
                 end
             end
@@ -156,7 +179,7 @@ classdef road < handle
                         continue;
                     end
 
-                    freeDrive=true;
+                    freeDrive = true;
                     %calculate the gap on the current road
                     gap = 0;
                     for x = alpha+1:length(obj.cells)
@@ -180,7 +203,7 @@ classdef road < handle
                             %an exit road: delete it
                             if isempty(tempNeighbours)
                                 obj.cells(lane,alpha) = 0;
-                                vehicles = vehicles(vehicles~=vehicles(vehicID));
+                                vehicles = vehicles(vehicles ~= vehicles(vehicID));
                                 continue;
                             else
                                 vehicles(vehicID).switchToThisRoad = tempNeighbours(randi(length(tempNeighbours)));
@@ -220,12 +243,12 @@ classdef road < handle
                     if (vehicles(vehicID).switchToThisRoad == -1 || (gap == 0 && freeDrive==false) || freeDrive==false)
                         if (vehicles(vehicID).v > gap)
                             vehicles(vehicID).v = gap;
+                            vehicles(vehicID).status = 3;
                         end
                     else
                         if gapOnNewStreet == 0
                             vehicles(vehicID).switchToThisRoad = -1;
                             vehicles(vehicID).switchToThisLane = -1;
-                            
                         end
                         vehicles(vehicID).v = gap+gapOnNewStreet;
                     end
@@ -233,31 +256,31 @@ classdef road < handle
             end
 
             %trödeln
-%             for alpha=1:length(obj.cells)
-%                 for lane=1:obj.lanes
-%                     if (obj.cells(lane,alpha)>0)
-%                         if rand(1)>0.9
-%                             for a=1:length(vehicles)
-%                                 if (obj.cells(lane,alpha) == vehicles(a).vehicleID)
-%                                     vehicID = a;
-%                                     break;
-%                                 end
-%                             end 
-% 
-%                             %did the vehicle generate already? skip this cell
-%                             if vehicles(vehicID).switchToThisRoad == -2
-%                                 continue;
-%                             end
-% 
-%                             %if the vehicle isnt standing and not about to
-%                             %switch roads
-%                             if (vehicles(vehicID).v) > 0 && (vehicles(vehicID).switchToThisRoad == -1)
-%                                 %TODO vehicles(vehicID).v = vehicles(vehicID).v - 1;
-%                             end
-%                         end
-%                     end
-%                 end
-%             end
+            for alpha=1:length(obj.cells)
+                for lane=1:obj.lanes
+                    if (obj.cells(lane,alpha) > 0)
+                        if rand(1)>0.9
+                            for a=1:length(vehicles)
+                                if (obj.cells(lane,alpha) == vehicles(a).vehicleID)
+                                    vehicID = a;
+                                    break;
+                                end
+                            end
+
+                            %did the vehicle generate already? skip this cell
+                            if vehicles(vehicID).switchToThisRoad == -2
+                                continue;
+                            end
+
+                            %if the vehicle isnt standing and not about to
+                            %switch roads/lanes
+                            if (vehicles(vehicID).v) > 0 && (vehicles(vehicID).switchToThisRoad == -1) && (vehicles(vehicID).switchToThisLane == -1)
+                            	vehicles(vehicID).v = vehicles(vehicID).v - 1;
+                            end
+                        end
+                    end
+                end
+            end
 
             %bewegen
             for alpha=length(obj.cells):-1:1
@@ -327,10 +350,6 @@ classdef road < handle
                         %remove the vehicle from its old position
                         if vehicles(vehicID).v > 0
                             if vehicles(vehicID).vehicleID ~= obj.cells(lane,alpha)
-                                
-                                
-                                
-                                
                                 error('error3');
                             end
                             obj.cells(lane, alpha) = 0;
@@ -358,6 +377,7 @@ classdef road < handle
                 end
             end
         end
+        
     end
     
 end

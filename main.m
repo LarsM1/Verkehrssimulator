@@ -44,7 +44,7 @@ connectivity_matrix(210,189)=1;
 connectivity_matrix(208,192)=1;
 connectivity_matrix(191,194)=1;
 connectivity_matrix(210,195)=1;
-while(true)
+
 %create road objects out of the parsed data
 roads = create_roads(connectivity_matrix,uniquend.id, intersection_node_indices,parsed_osm.bounds);
 
@@ -55,7 +55,7 @@ enterRoad = road(length(roads)+1,-1,startID,...
                 [parsed_osm.bounds(1,1); uniquend.id(2,find(intersection_node_indices==startID))],...
                 uniquend.id(:,find(intersection_node_indices==startID)),...
                 5,1,parsed_osm.bounds);
-
+%exit road
 endID=195;
 exitRoad = road(length(roads)+2,endID,-2,...
                 uniquend.id(:,find(intersection_node_indices==endID)),...
@@ -123,7 +123,6 @@ count=0;
 ID_counter=1;
 while(true)
     pause(0.01);
-    %disp('loop');
     count = count+1;
     if count>50
         %break;
@@ -138,6 +137,7 @@ while(true)
         end
         title (ax,['Vehicle count: ' num2str(length(vehicles))]);
     end
+    
     %generate
 	for i=1:length(roads)
         [roads,vehicles] = roads(i).generate(vehicles,roads);
@@ -147,8 +147,9 @@ while(true)
     for i = 1:length(circles)
         delete(circles(i));
     end
+    
 	circles=[];
-    carCount =[];
+    carCount=[];
 
     %remove reservation cells (== -1) and update map
     for i=1:length(roads)
@@ -165,12 +166,13 @@ while(true)
                 end
             end
         end
-        circles = roads(i).draw(circles, ax,parsed_osm.bounds);
+        circles = roads(i).draw(circles, ax,parsed_osm.bounds, vehicles);
     end
     
 	if length(carCount) ~= length(vehicles)
         error(['vehicles disappeared' num2str(length(carCount)) '--' num2str(length(vehicles))]);
 	end
+    
     %reset already-moved-status of vehicles (switchToThisRoad == -2) 
     for i=1:length(vehicles)
         if vehicles(i).switchToThisRoad == -2
@@ -179,17 +181,8 @@ while(true)
         end
     end
 end
-end
-main
-return;
-
-%% testing
-for i=1:length(intersection_node_indices)
-    disp(['neighbous of ' num2str(intersection_node_indices(i)) ':' num2str(get_neighbours(roads,intersection_node_indices(i)))]);
-end
-
-
-%aaa=([parsed_osm.bounds(1),parsed_osm.bounds(3)]);
-%bbb=([parsed_osm.bounds(2),parsed_osm.bounds(4)]);
-%from=find(intersection_node_indices==arr(1).from)
-%to=find(intersection_node_indices==arr(1).to)
+% 
+% %% testing
+% for i=1:length(intersection_node_indices)
+%     disp(['neighbous of ' num2str(intersection_node_indices(i)) ':' num2str(get_neighbours(roads,intersection_node_indices(i)))]);
+% end
