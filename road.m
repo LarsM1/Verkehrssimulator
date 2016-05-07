@@ -378,6 +378,30 @@ classdef road < handle
             end
         end
         
+        %pass lane=0 to get result of all lanes
+        %pass from=to=0 to get the whole road
+        function count = getVehicleCount(obj,from,to,lane)
+            if (from == 0) || (to == 0)
+               from = 1;
+               to = length(obj.cells);
+            end
+            
+            count = 0;
+            laneFrom = 1;
+            laneTo = obj.lanes;
+            for i = from:to
+                if lane ~= 0
+                    laneFrom  = lane;
+                    laneTo = lane;
+                end
+                
+                for j = laneFrom:laneTo
+                    if obj.cells(j,i) > 0
+                        count = count + 1;
+                    end
+                end
+            end
+        end
     end
     
 end

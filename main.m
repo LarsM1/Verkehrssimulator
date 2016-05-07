@@ -169,6 +169,9 @@ while(true)
         circles = roads(i).draw(circles, ax,parsed_osm.bounds, vehicles);
     end
     
+    test = roads(11).getVehicleCount(0,0,0);
+    plot(2,test);
+    
 	if length(carCount) ~= length(vehicles)
         error(['vehicles disappeared' num2str(length(carCount)) '--' num2str(length(vehicles))]);
 	end

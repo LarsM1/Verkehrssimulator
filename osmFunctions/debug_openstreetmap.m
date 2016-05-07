@@ -19,7 +19,7 @@ openstreetmap_filename = 'openstreetmap/genoa_small.osm';
 % convert the OpenStreetMap XML Data file donwloaded as map.osm
 % to a MATLAB structure containing part of the information describing the
 % transportation network
-[parsed_osm, osm_xml] = parse_openstreetmap(openstreetmap_filename);
+[parsed_osm, osm_xml] = pars2e_openstreetmap(openstreetmap_filename);
 
 %% plot
 % plot the network, optionally a raster image can also be provided for the
