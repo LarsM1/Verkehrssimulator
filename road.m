@@ -26,7 +26,7 @@ classdef road < handle
             %if the street is going up or down make it longer
             %(langitude/latitude ratio is different)
             if mod(obj.getDirection(bounds),2) == 0 
-                factor = 2;
+                factor = 1;
             else
                 factor = 5;
             end
@@ -380,13 +380,14 @@ classdef road < handle
         
         %pass lane=0 to get result of all lanes
         %pass from=to=0 to get the whole road
-        function count = getVehicleCount(obj,from,to,lane)
+        function [vehicleIDs,positions] = getVehicleCount(obj,from,to,lane)
             if (from == 0) || (to == 0)
                from = 1;
                to = length(obj.cells);
             end
             
-            count = 0;
+            vehicleIDs = [];
+            positions = [];
             laneFrom = 1;
             laneTo = obj.lanes;
             for i = from:to
@@ -397,7 +398,8 @@ classdef road < handle
                 
                 for j = laneFrom:laneTo
                     if obj.cells(j,i) > 0
-                        count = count + 1;
+                        vehicleIDs = [vehicleIDs obj.cells(j,i)];
+                        positions = [positions i];
                     end
                 end
             end

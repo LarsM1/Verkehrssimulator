@@ -11,7 +11,6 @@ function [] = show_map(ax, bounds, map_img_filename)
 % See also PLOT_WAY.
 
 hold(ax, 'on')
-test = 'HALL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!O';
 
 % image provided ?
 if ~isempty(map_img_filename)
