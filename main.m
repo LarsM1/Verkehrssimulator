@@ -63,7 +63,7 @@ exitRoad = road(length(roads)+2,endID,-2,...
                 uniquend.id(:,find(intersection_node_indices==endID)),...
                 [uniquend.id(1,find(intersection_node_indices==endID)); parsed_osm.bounds(2,2)+0.001],...
                 5,1,parsed_osm.bounds);
-roads = [roads enterRoad];
+roads = [roads enterRoad exitRoad];
 entryExitRoads = [length(roads); length(roads)-1];
 %% create test vehicles and place on street
 %  speed1=randi(5);
@@ -136,7 +136,7 @@ analysisRoadID=13;
 hold on;
 
 while(true)
-    pause(0.01);
+    pause(1/100);
     count = count+1;
 
     %spawn random vehicles on random roads
@@ -182,42 +182,18 @@ while(true)
     end
     
     %generate the Ort/Zeit data
-    [vehicleIDs,positions] = roads(analysisRoadID).getVehicleCount(0,0,0);
+    [vehicleIDs,positions] = roads(analysisRoadID).getVehicleCount(0,0,1);
     
-    %initial cell setup
-    if isempty(vehiclePositionMatching)
-        if isempty(vehicleIDs) == false
-            vehiclePositionMatching{1,1} = vehicleIDs;
-            vehiclePositionMatching{2,1} = [count, positions];
-        end
-    else
-        %delete vehicles that left the area
-        toFind=cell2mat(vehiclePositionMatching(1,:));
-        for i=1:length(toFind)
-            %vehicle is still saved, but not on the road anymore
-            if isempty(find(toFind(i)==vehicleIDs))
-                vehiclePositionMatching(:,i)=[];
-            end
-        end
-            
-        for i=1:length(vehicleIDs)
-            %new vehicle entered the road?
-            if isempty(find([vehiclePositionMatching{1,:}] == vehicleIDs(i)))
-                vehiclePositionMatching{1,size(vehiclePositionMatching,2)+1}=vehicleIDs(i);
-            end
-            
-            %add [time, position] vector to the corresponding vehicleID
-            index = find([vehiclePositionMatching{1,:}] == vehicleIDs(i));
-            vehiclePositionMatching{2,index}=[vehiclePositionMatching{2,index};count,positions(i)];
-        end
-    end
+    %create ort/zeit data and match it to the existing data
+    vehiclePositionMatching = create_raum_zeit_data(vehicleIDs,positions,vehiclePositionMatching, count);
+   
+    hold (ax2, 'on');
+    axis(ax2,[count-60 count, 0 length(roads(analysisRoadID).cells)]);
     
-    cla(ax2);
     for i=1:size(vehiclePositionMatching,2)
         plot(ax2,vehiclePositionMatching{2,i}(:,1),vehiclePositionMatching{2,i}(:,2));
     end
-    %plot(ax2,vehicleIDs,positions);
-    axis(ax2,[-inf inf, 0 length(roads(analysisRoadID).cells)]);
+    
 	if length(carCount) ~= length(vehicles)
         error(['vehicles disappeared' num2str(length(carCount)) '--' num2str(length(vehicles))]);
 	end

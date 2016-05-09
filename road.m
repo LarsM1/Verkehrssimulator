@@ -240,10 +240,26 @@ classdef road < handle
                         end
                     end
 
+                    %vehicle needed to break. change lanes?
                     if (vehicles(vehicID).switchToThisRoad == -1 || (gap == 0 && freeDrive==false) || freeDrive==false)
                         if (vehicles(vehicID).v > gap)
                             vehicles(vehicID).v = gap;
                             vehicles(vehicID).status = 3;
+                            
+                            
+                            %lane change
+                            if vehicles(vehicID).switchToThisLane < 0
+                                
+                            end
+                            
+                                                
+                            
+                            
+                            
+                            
+                            
+                            
+                            
                         end
                     else
                         if gapOnNewStreet == 0
@@ -255,7 +271,7 @@ classdef road < handle
                 end
             end
 
-            %trödeln
+            %trödeln/überholen
             for alpha=1:length(obj.cells)
                 for lane=1:obj.lanes
                     if (obj.cells(lane,alpha) > 0)
@@ -271,6 +287,9 @@ classdef road < handle
                             if vehicles(vehicID).switchToThisRoad == -2
                                 continue;
                             end
+                            
+                            
+                            
 
                             %if the vehicle isnt standing and not about to
                             %switch roads/lanes
@@ -354,25 +373,6 @@ classdef road < handle
                             end
                             obj.cells(lane, alpha) = 0;
                         end
-%                         carss=[]; 
-%                         for i=1:length(roads)
-%                             for k=1:roads(i).lanes
-%                                 for j=1:length(roads(i).cells)           
-%                                     %test if car disappeared
-%                                     if roads(i).cells(k,j) > 0
-%                                         carss=[carss roads(i).cells(k,j)];
-%                                     end
-%                                 end
-%                             end
-%                         end
-% 
-%                         if length(carss) ~= length(vehicles)
-% 
-% 
-% 
-% 
-%                             %error(['vehicles disappeared' num2str(carCount) '--' num2str(length(vehicles))]);
-%                         end
                     end
                 end
             end
