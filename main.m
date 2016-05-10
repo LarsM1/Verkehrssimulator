@@ -130,9 +130,12 @@ vehiclePositionMatching={};
 
 fig2 = figure(2);
 ax2 = axes('Parent', fig2);
+analysisRoadID=13;
+analysisRoadLane = roads(analysisRoadID).lanes;
 xlabel('Time (iteration)')
 ylabel('Position (cell index)')
-analysisRoadID=13;
+title(['road ' num2str(analysisRoadID) ' [' num2str(roads(analysisRoadID).from) '->' num2str(roads(analysisRoadID).to) '] at lane ' num2str(analysisRoadLane)]);
+
 hold on;
 
 while(true)
@@ -182,7 +185,7 @@ while(true)
     end
     
     %generate the Ort/Zeit data
-    [vehicleIDs,positions] = roads(analysisRoadID).getVehicleCount(0,0,1);
+    [vehicleIDs, positions] = roads(analysisRoadID).getVehicleCount(0,0,analysisRoadLane);
     
     %create ort/zeit data and match it to the existing data
     vehiclePositionMatching = create_raum_zeit_data(vehicleIDs,positions,vehiclePositionMatching, count);
@@ -191,18 +194,18 @@ while(true)
     axis(ax2,[count-60 count, 0 length(roads(analysisRoadID).cells)]);
     
     for i=1:size(vehiclePositionMatching,2)
-        plot(ax2,vehiclePositionMatching{2,i}(:,1),vehiclePositionMatching{2,i}(:,2));
+        %plot(ax2,vehiclePositionMatching{2,i}(:,1),vehiclePositionMatching{2,i}(:,2));
     end
-    
-	if length(carCount) ~= length(vehicles)
-        error(['vehicles disappeared' num2str(length(carCount)) '--' num2str(length(vehicles))]);
-	end
-    
+        
     %reset already-moved-status of vehicles (switchToThisRoad == -2) 
     for i=1:length(vehicles)
-        if vehicles(i).switchToThisRoad == -2
+        if vehicles(i).switchToThisRoad == -2 || vehicles(i).switchToThisLane == -2
             vehicles(i).switchToThisRoad = -1; 
             vehicles(i).switchToThisLane = -1;
         end
     end
+    
+    if length(carCount) ~= length(vehicles)
+        error(['vehicles disappeared' num2str(length(carCount)) '--' num2str(length(vehicles))]);
+	end
 end

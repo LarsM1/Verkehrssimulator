@@ -248,18 +248,83 @@ classdef road < handle
                             
                             
                             %lane change
-                            if vehicles(vehicID).switchToThisLane < 0
+                            if obj.lanes > 1 && vehicles(vehicID).switchToThisLane < 0 && alpha > 6 && alpha+vehicles(vehicID).v+2 < length(obj.cells)
+                                possibleSwitchLanes=[];
+
+                                if lane == 1
+                                    possibleSwitchLanes = 2;
+                                elseif lane == obj.lanes
+                                    possibleSwitchLanes = lane - 1;
+                                else %3 or more lanes
+                                    possibleSwitchLanes=[lane+1, lane-1];
+                                end
                                 
-                            end
-                            
-                                                
-                            
-                            
-                            
-                            
-                            
-                            
-                            
+                                for k=1:length(possibleSwitchLanes)
+                                    %check if there's a car behind/in front of us in
+                                    %the different lane
+                                    vehicleIDBehind = 0;
+                                    distanceBehind = 0;
+                                    x = 0;
+                                    
+                                    for x = alpha-1:-1:alpha-6
+                                        if obj.cells(possibleSwitchLanes(k),x) ~= 0
+                                            if obj.cells(possibleSwitchLanes(k),x) < 0
+                                                distanceBehind = -1;
+                                                break;
+                                            end
+                                            distanceBehind = alpha - x;
+                                            %get reference ID
+                                            for a=1:length(vehicles)
+                                                if obj.cells(possibleSwitchLanes(k),x) == vehicles(a).vehicleID
+                                                    vehicleIDBehind = a;
+                                                    break;
+                                                end
+                                            end
+                                            break;
+                                        end
+                                    end
+                                    
+                                    distanceInFront = -1;
+                                    for x = alpha:alpha+vehicles(vehicID).v+2
+                                        if obj.cells(possibleSwitchLanes(k),x) ~= 0
+                                            distanceInFront = 99;
+                                            break;
+                                            if obj.cells(possibleSwitchLanes(k),x) < 0
+                                                distanceInFront = -2;
+                                                break;
+                                            end
+                                            distanceInFront = x - alpha;
+                                            break;
+                                        end
+                                    end
+                                    
+                                    %vehicle is driving too fast in
+                                    %relation to the gap size?
+                                    if distanceBehind > 0
+                                        if vehicles(vehicleIDBehind).v > distanceBehind
+                                            continue;
+                                        end
+                                    end
+                                    
+                                    if distanceInFront ~= -1
+                                        continue;
+                                    end
+                                    
+                                    %change is possible and meaningful
+                                    vehicles(vehicID).switchToThisLane = possibleSwitchLanes(k);
+                                    %reservation
+                                    if obj.cells(possibleSwitchLanes(k),alpha+vehicles(vehicID).v) ~=0
+                                       
+                                        
+                                        
+                                        error ('error 7');
+                                    end
+                                    
+                                    obj.cells(possibleSwitchLanes(k),alpha+vehicles(vehicID).v) = -vehicles(vehicID).vehicleID;
+                                    break;
+                                end
+                            end %lane change end
+ 
                         end
                     else
                         if gapOnNewStreet == 0
@@ -274,7 +339,7 @@ classdef road < handle
             %trödeln/überholen
             for alpha=1:length(obj.cells)
                 for lane=1:obj.lanes
-                    if (obj.cells(lane,alpha) > 0)
+                    if obj.cells(lane,alpha) > 0
                         if rand(1)>0.9
                             for a=1:length(vehicles)
                                 if (obj.cells(lane,alpha) == vehicles(a).vehicleID)
@@ -284,12 +349,9 @@ classdef road < handle
                             end
 
                             %did the vehicle generate already? skip this cell
-                            if vehicles(vehicID).switchToThisRoad == -2
+                            if vehicles(vehicID).switchToThisRoad == -2 ||vehicles(vehicID).switchToThisLane == -2
                                 continue;
                             end
-                            
-                            
-                            
 
                             %if the vehicle isnt standing and not about to
                             %switch roads/lanes
@@ -313,15 +375,16 @@ classdef road < handle
                         end
 
                         %did the vehicle generate already? skip this cell
-                        if vehicles(vehicID).switchToThisRoad == -2
+                        if vehicles(vehicID).switchToThisRoad == -2 || vehicles(vehicID).switchToThisLane == -2
                             continue;
                         end
+                       
 
                         if vehicles(vehicID).switchToThisRoad == -1
                             if (obj.cells(lane,alpha+vehicles(vehicID).v) == 0)
                                 obj.cells(lane,alpha+vehicles(vehicID).v) = vehicles(vehicID).vehicleID;
                             end
-                        else %vehicle is changing lanes
+                        else %vehicle is changing road
                             %get roadID
                             for a = 1:length(roads)
                                 if roads(a).roadID == vehicles(vehicID).switchToThisRoad
@@ -342,11 +405,11 @@ classdef road < handle
                                     %road is reserved, but for which vehicle?
                                     if -1 * (roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b)) == vehicles(vehicID).vehicleID
                                         if b == XCellsTooFar %vehicle can drive all the way on the new road
-                                            if roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b)>0
+                                            if roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b) > 0
                                                 error('error1');
                                             end
-                                            if roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,XCellsTooFar)>0
-                                                disp('error6');
+                                            if roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,XCellsTooFar) > 0
+                                                error('error6');
                                             end
                                             roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,XCellsTooFar) = vehicles(vehicID).vehicleID;
                                             %-2 indicates that the vehicle just
@@ -356,7 +419,7 @@ classdef road < handle
                                             vehicles(vehicID).switchToThisLane = -2;
                                             
                                         else %delete reservation
-                                            if roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b)>0
+                                            if roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b) > 0
                                                 error('error4');
                                             end
                                             roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b) = 0;    
@@ -373,6 +436,21 @@ classdef road < handle
                             end
                             obj.cells(lane, alpha) = 0;
                         end
+                        
+                        %switch lane before moving?
+                        if vehicles(vehicID).switchToThisLane > 0 && vehicles(vehicID).switchToThisRoad == -1                            
+                            if obj.cells(vehicles(vehicID).switchToThisLane,alpha+vehicles(vehicID).v) ~= -vehicles(vehicID).vehicleID
+                                error('error 8');
+                            end
+                            %change lane
+                            obj.cells(vehicles(vehicID).switchToThisLane,alpha+vehicles(vehicID).v) = vehicles(vehicID).vehicleID;
+                            if obj.cells(lane,alpha+vehicles(vehicID).v) ~= vehicles(vehicID).vehicleID
+                                error ('error 9');
+                            end
+                            obj.cells(lane,alpha+vehicles(vehicID).v) = 0;
+                            vehicles(vehicID).switchToThisLane = -2;
+                        end
+                        
                     end
                 end
             end
