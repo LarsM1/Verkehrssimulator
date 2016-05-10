@@ -146,7 +146,7 @@ while(true)
     if (rand(1) > 0.2)
         %spawn random cars in the entering street (bottom left)
         if roads(enterRoad.roadID).cells(1) == 0 
-            vehicles = [vehicles vehicle(ID_counter,2,2)];
+            vehicles = [vehicles vehicle(ID_counter,randi([1,3]),2)];
             ID_counter = ID_counter + 1;
             roads(enterRoad.roadID).cells(1) = vehicles(length(vehicles)).vehicleID;
         end
@@ -194,7 +194,7 @@ while(true)
     axis(ax2,[count-60 count, 0 length(roads(analysisRoadID).cells)]);
     
     for i=1:size(vehiclePositionMatching,2)
-        %plot(ax2,vehiclePositionMatching{2,i}(:,1),vehiclePositionMatching{2,i}(:,2));
+        plot(ax2,vehiclePositionMatching{2,i}(:,1),vehiclePositionMatching{2,i}(:,2));
     end
         
     %reset already-moved-status of vehicles (switchToThisRoad == -2) 

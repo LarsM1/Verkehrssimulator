@@ -289,12 +289,12 @@ classdef road < handle
                                         if obj.cells(possibleSwitchLanes(k),x) ~= 0
                                             distanceInFront = 99;
                                             break;
-                                            if obj.cells(possibleSwitchLanes(k),x) < 0
-                                                distanceInFront = -2;
-                                                break;
-                                            end
-                                            distanceInFront = x - alpha;
-                                            break;
+%                                             if obj.cells(possibleSwitchLanes(k),x) < 0
+%                                                 distanceInFront = -2;
+%                                                 break;
+%                                             end
+%                                             distanceInFront = x - alpha;
+%                                             break;
                                         end
                                     end
                                     
@@ -314,9 +314,6 @@ classdef road < handle
                                     vehicles(vehicID).switchToThisLane = possibleSwitchLanes(k);
                                     %reservation
                                     if obj.cells(possibleSwitchLanes(k),alpha+vehicles(vehicID).v) ~=0
-                                       
-                                        
-                                        
                                         error ('error 7');
                                     end
                                     
