@@ -143,7 +143,7 @@ while(true)
     count = count+1;
 
     %spawn random vehicles on random roads
-    if (rand(1) > 0.2)
+    if (rand(1) > 0.7)
         %spawn random cars in the entering street (bottom left)
         if roads(enterRoad.roadID).cells(1) == 0 
             vehicles = [vehicles vehicle(ID_counter,randi([1,3]),2)];
@@ -155,6 +155,7 @@ while(true)
     
     %generate
 	for i=1:length(roads)
+        roads(i).overtake(vehicles);
         [roads,vehicles] = roads(i).generate(vehicles,roads);
 	end
     
