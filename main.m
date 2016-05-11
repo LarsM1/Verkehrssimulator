@@ -177,7 +177,7 @@ while(true)
                 end
 
                 %test if car disappeared
-                if roads(i).cells(k,j) >0
+                if roads(i).cells(k,j) > 0
                     carCount = [carCount roads(i).cells(k,j)];
                 end
             end

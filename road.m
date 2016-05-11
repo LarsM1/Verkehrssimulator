@@ -386,16 +386,29 @@ classdef road < handle
                     
                     if obj.lanes > 1 && vehicles(vehicID).switchToThisLane < 0 && alpha > 6 && alpha+vehicles(vehicID).v+2 < length(obj.cells)
                         %vehicle in front?
-                        inFront = false;
+                        inFront = 0;
                         for r = alpha:alpha+vehicles(vehicID).v
                             if obj.cells(lane,r) ~= 0
-                                inFront = true;
+                                inFront = obj.cells(lane,r);
                                 break;
                             end
                         end
                         
-                        if inFront == false
+                        if inFront <= 0
                             continue;
+                        else
+                            %not empty, search vehicleID
+                            for a=1:length(vehicles)
+                                if inFront == vehicles(a).vehicleID
+                                    vehicIDinFront = a;
+                                    break;
+                                end
+                            end
+                            %vehicle in front of us faster/equally fast
+                            %than our vehicle?
+                            if vehicles(vehicIDinFront).v_max >= vehicles(vehicID).v_max
+                                continue;
+                            end
                         end
 
                         possibleSwitchLanes=[];
@@ -459,7 +472,6 @@ classdef road < handle
                             end
 
                             %change is possible and meaningful
-                            %vehicles(vehicID).switchToThisLane = possibleSwitchLanes(k);
                             obj.cells(possibleSwitchLanes(k),alpha) = vehicles(vehicID).vehicleID;
                             obj.cells(lane,alpha) = 0;
                             break;
