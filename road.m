@@ -79,7 +79,7 @@ classdef road < handle
             end
         end
         
-        function circles = draw(obj,circles,ax,bounds,vehicles)
+        function carArrows = draw(obj,carArrows,ax,bounds,vehicles)
             %x/y distance from start to fin
             xdist=(obj.start_coordinate(1)-obj.end_coordinate(1));
             ydist=(obj.start_coordinate(2)-obj.end_coordinate(2));
@@ -127,8 +127,8 @@ classdef road < handle
                         else %breaking
                             color = 'r';
                         end
-
-                        circles=[circles line('Parent', ax,'XData',obj.start_coordinate(1)-temp1+offsetX, 'YData',obj.start_coordinate(2)-temp2+offsetY, 'Color','r', ...
+                        
+                        carArrows=[carArrows line('Parent', ax,'XData',obj.start_coordinate(1)-temp1+offsetX, 'YData',obj.start_coordinate(2)-temp2+offsetY, 'Color','r', ...
                                    'Marker',dirString, 'MarkerSize',6, 'MarkerFaceColor', color, 'MarkerEdgeColor', 'k')];
                     end
                 end
@@ -384,10 +384,11 @@ classdef road < handle
                         continue;
                     end
                     
+                    %do not overtake at the start/end of a road
                     if obj.lanes > 1 && vehicles(vehicID).switchToThisLane < 0 && alpha > 6 && alpha+vehicles(vehicID).v+2 < length(obj.cells)
                         %vehicle in front?
                         inFront = 0;
-                        for r = alpha:alpha+vehicles(vehicID).v
+                        for r = alpha+1:alpha+vehicles(vehicID).v
                             if obj.cells(lane,r) ~= 0
                                 inFront = obj.cells(lane,r);
                                 break;
@@ -471,7 +472,7 @@ classdef road < handle
                                 continue;
                             end
 
-                            %change is possible and meaningful
+                            %change is possible and meaningful, do it
                             obj.cells(possibleSwitchLanes(k),alpha) = vehicles(vehicID).vehicleID;
                             obj.cells(lane,alpha) = 0;
                             break;
@@ -483,7 +484,7 @@ classdef road < handle
         
         %pass lane=0 to get result of all lanes
         %pass from=to=0 to get the whole road
-        function [vehicleIDs,positions] = getVehicleCount(obj,from,to,lane)
+        function [vehicleIDs,positions] = getVehiclePositionRelation(obj,from,to,lane)
             if (from == 0) || (to == 0)
                from = 1;
                to = length(obj.cells);
@@ -507,6 +508,32 @@ classdef road < handle
                 end
             end
         end
+        
+                %pass lane=0 to get result of all lanes
+        %pass from=to=0 to get the whole road
+        function vehicleCount = getVehicleCount(obj,from,to,lane)
+            if (from == 0) || (to == 0)
+               from = 1;
+               to = length(obj.cells);
+            end
+            
+            vehicleCount = 0;
+            laneFrom = 1;
+            laneTo = obj.lanes;
+            for i = from:to
+                if lane ~= 0
+                    laneFrom  = lane;
+                    laneTo = lane;
+                end
+                
+                for j = laneFrom:laneTo
+                    if obj.cells(j,i) > 0
+                        vehicleCount = vehicleCount + 1;
+                    end
+                end
+            end
+        end
+        
     end
     
 end

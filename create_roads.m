@@ -9,7 +9,7 @@ function [ roads ] = create_roads( connectivity_matrix, node_positions, intersec
             if connectivity_matrix(i,j) == 1
                 a=find(intersection_node_indices == i);
                 b=find(intersection_node_indices == j);
-                
+                                                                                    
                 tempRoad=road(count,i,j,node_positions(:,a),node_positions(:,b),5,randi(2),bounds);
                 
                 count=count+1;

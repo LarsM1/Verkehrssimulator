@@ -2,13 +2,13 @@ startup
 
 %% name file
 openstreetmap_filename = 'map.osm';
-map_img_filename = 'map.png'; % image file saved from online, if available
+map_img_filename = 'map.png';
 
 %convert XML -> MATLAB struct
 [parsed_osm, osm_xml] = parse_openstreetmap(openstreetmap_filename);
 
 %% plot
-fig = figure(1);
+fig = figure('name','Traffic Network');
 ax = axes('Parent', fig);
 hold('on')
 
@@ -74,8 +74,8 @@ entryExitRoads = [length(roads); length(roads)-1];
 %  speed6=randi(5);
 %  speed7=randi(5);
 %  
-% vehicles = vehicle(1,2,2);
-% vehicles = [vehicles vehicle(2,2,2)];
+ %vehicles = vehicle(1,1,2);
+ %vehicles = [vehicles vehicle(2,5,2)];
 % vehicles = [vehicles vehicle(3,2,2)];
 % vehicles = [vehicles vehicle(4,speed3,0)];
 % vehicles = [vehicles vehicle(5,speed4,1)];
@@ -106,8 +106,8 @@ entryExitRoads = [length(roads); length(roads)-1];
 % r=randperm(n);
 % r=r(1:m);
 
-% roads(19).cells(roads(19).lanes,1) = vehicles(2).vehicleID;
-% roads(3).cells(roads(3).lanes,1) = vehicles(1).vehicleID;
+ %roads(13).cells(2,35) = vehicles(2).vehicleID;
+ %roads(13).cells(2,40) = vehicles(1).vehicleID;
 % roads(4).cells(roads(4).lanes,1) = vehicles(3).vehicleID;
 
 % roads(r(1)).cells(length(roads(r(1)).cells)-yo1) = vehicles(1).vehicleID;
@@ -120,23 +120,33 @@ entryExitRoads = [length(roads); length(roads)-1];
 
 
 %% move cars
-circles=[];
-vehicles=[];
+circles = [];
+vehicles = [];
+vehiclesPassed = []; %fundamentaldiagramm
 count=0;
 ID_counter=1;
-
 vehiclePositionMatching={};
 
-
-fig2 = figure(2);
-ax2 = axes('Parent', fig2);
-analysisRoadID=13;
+analysisRoadID = 2;
 analysisRoadLane = roads(analysisRoadID).lanes;
-xlabel('Time (iteration)')
-ylabel('Position (cell index)')
-title(['road ' num2str(analysisRoadID) ' [' num2str(roads(analysisRoadID).from) '->' num2str(roads(analysisRoadID).to) '] at lane ' num2str(analysisRoadLane)]);
 
-hold on;
+fig2 = figure('name',['road ' num2str(analysisRoadID) ' [' num2str(roads(analysisRoadID).from) '->' num2str(roads(analysisRoadID).to) '] at lane ' num2str(analysisRoadLane)]);
+fig3 = figure('name',['road ' num2str(analysisRoadID) ' [' num2str(roads(analysisRoadID).from) '->' num2str(roads(analysisRoadID).to) '] at lane ' num2str(analysisRoadLane)]);
+ax2 = axes('Parent', fig2);
+ax3 = axes('Parent', fig3);
+
+%subplot(1,2,1);
+xlabel(ax2,'Time (iteration)')
+ylabel(ax2,'Position (cell index)')
+title(ax2,'Ort/Zeit Diagramm');
+hold (ax2,'on');
+
+%subplot(1,2,2);
+xlabel(ax3,'Dichte (Fahrzeuge/km)')
+ylabel(ax3,'Fluss (Fahrzeuge/Zeit)')
+title(ax3,'Fundamentaldiagramm');
+axis(ax3,[0 inf, 0 inf]);
+hold (ax3,'on');
 
 while(true)
     pause(1/100);
@@ -150,7 +160,7 @@ while(true)
             ID_counter = ID_counter + 1;
             roads(enterRoad.roadID).cells(1) = vehicles(length(vehicles)).vehicleID;
         end
-        title (ax,['Vehicle count: ' num2str(length(vehicles))]);
+        %title (ax,['Vehicle count: ' num2str(length(vehicles))]);
     end
     
     %generate
@@ -164,8 +174,8 @@ while(true)
         delete(circles(i));
     end
     
-	circles=[];
-    carCount=[];
+	circles = [];
+    carCount = [];
 
     %remove reservation cells (== -1) and update map
     for i=1:length(roads)
@@ -185,19 +195,34 @@ while(true)
         circles = roads(i).draw(circles, ax,parsed_osm.bounds, vehicles);
     end
     
+    %% Ort-Zeit
     %generate the Ort/Zeit data
-    [vehicleIDs, positions] = roads(analysisRoadID).getVehicleCount(0,0,analysisRoadLane);
+    [vehicleIDs, positions] = roads(analysisRoadID).getVehiclePositionRelation(0,0,analysisRoadLane);
     
     %create ort/zeit data and match it to the existing data
     vehiclePositionMatching = create_raum_zeit_data(vehicleIDs,positions,vehiclePositionMatching, count);
    
-    hold (ax2, 'on');
+    %subplot(1,2,1);
     axis(ax2,[count-60 count, 0 length(roads(analysisRoadID).cells)]);
-    
+
     for i=1:size(vehiclePositionMatching,2)
+        %subplot(1,2,1);
         plot(ax2,vehiclePositionMatching{2,i}(:,1),vehiclePositionMatching{2,i}(:,2));
     end
-        
+    
+    %% Fundamentaldiagramm at point 40
+    %subplot(1,2,2);
+    vehicleCountTemp = roads(analysisRoadID).getVehicleCount(40,45,0);
+    vehiclesPassed = union(vehiclesPassed,vehicleCountTemp);
+    if mod(count,20)==0
+        vehicleCountTemp = roads(analysisRoadID).getVehicleCount(20,60,0); 
+        scatter(ax3,length(vehiclesPassed),length(vehicleIDs),'LineWidth',1.5','Marker','*','MarkerEdgeColor','r');
+        vehiclesPassed=[];
+    end
+    
+    
+    %%
+    
     %reset already-moved-status of vehicles (switchToThisRoad == -2) 
     for i=1:length(vehicles)
         if vehicles(i).switchToThisRoad == -2 || vehicles(i).switchToThisLane == -2
