@@ -58,15 +58,14 @@ enterRoad = road(length(roads)+1,-1,startID,...
                 uniquend.id(:,find(intersection_node_indices==startID)),...
                 5,1,parsed_osm.bounds);
 %exit road
-% endID=195;
-% exitRoad = road(length(roads)+2,endID,-2,...
-%                 uniquend.id(:,find(intersection_node_indices==endID)),...
-%                 [uniquend.id(1,find(intersection_node_indices==endID)); parsed_osm.bounds(2,2)+0.001],...
-%                 5,1,parsed_osm.bounds);
-%roads = [roads enterRoad exitRoad];
-roads = [roads enterRoad];
+endID = 195;
+exitRoad = road(length(roads)+2,endID,-2,...
+                uniquend.id(:,find(intersection_node_indices==endID)),...
+                [uniquend.id(1,find(intersection_node_indices==endID)); parsed_osm.bounds(2,2)+0.001],...
+                5,1,parsed_osm.bounds);
+roads = [roads enterRoad exitRoad];
 
-entryExitRoads = [length(roads); length(roads)-1];
+entryExitRoad = [length(roads)-1;length(roads)];
 %% create test vehicles and place on street
 %  speed1=randi(5);
 %  speed2=randi(5);
@@ -76,7 +75,8 @@ entryExitRoads = [length(roads); length(roads)-1];
 %  speed6=randi(5);
 %  speed7=randi(5);
 %  
-%vehicles = [vehicles vehicle(3,0,0)];
+vehicles =  vehicle(1,0,0);
+roads(1).cells(1,1)=1;
 % vehicles = [vehicles vehicle(4,speed3,0)];
 % vehicles = [vehicles vehicle(5,speed4,1)];
 % vehicles = [vehicles vehicle(6,speed5,1)];
@@ -115,15 +115,14 @@ entryExitRoads = [length(roads); length(roads)-1];
 % roads(r(3)).cells(length(roads(r(3)).cells)-yo7) = vehicles(6).vehicleID;
 % roads(r(4)).cells(length(roads(r(4)).cells)-yo4) = vehicles(7).vehicleID;
 
-
 %% move cars
 circles = [];
-vehicles = [];
+%vehicles = [];
 count=0;
-ID_counter=1;
+ID_counter=2;
 vehiclePositionMatching={};
 
-analysisRoadID = 13;
+analysisRoadID = 2;
 analysisRoadLane = roads(analysisRoadID).lanes;
 
 fig2 = figure('name',['road ' num2str(analysisRoadID) ' [' num2str(roads(analysisRoadID).from) '->' num2str(roads(analysisRoadID).to) '] at lane ' num2str(analysisRoadLane)]);
@@ -136,8 +135,8 @@ ylabel(ax2,'Position (cell index)')
 title(ax2,'Ort/Zeit Diagramm');
 hold (ax2,'on');
 
-xlabel(ax3,'Dichte (Fahrzeuge/km)')
-ylabel(ax3,'Fluss (Fahrzeuge/Zeit)')
+xlabel(ax3,'Dichte p (Fahrzeuge/km)')
+ylabel(ax3,'Fluss Q (Fahrzeuge/h)')
 title(ax3,'Fundamentaldiagramm');
 axis(ax3,[0 inf, 0 inf]);
 hold (ax3,'on');
@@ -147,7 +146,7 @@ while(true)
     count = count+1;
 
     %spawn random vehicles on random roads
-    if (rand(1) > 0.7)
+    if rand(1) > 0.7 && spawnVehicles
         %spawn random cars in the entering street (bottom left)
         if roads(enterRoad.roadID).cells(1) == 0 
             vehicles = [vehicles vehicle(ID_counter,randi([3,5]),2)];
@@ -160,7 +159,7 @@ while(true)
     %generate
 	for i=1:length(roads)
         roads(i).overtake(vehicles);
-        [roads,vehicles] = roads(i).generate(vehicles,roads);
+        [roads,vehicles] = roads(i).generate(vehicles,roads,despawnVehicles,entryExitRoad(2));
 	end
     
     %delete old car arrows
@@ -204,8 +203,8 @@ while(true)
     end
     
     %% Fundamentaldiagramm
-    %dichte
-    vehicleCountTemp = roads(analysisRoadID).getVehicleCount(0,0,roads(analysisRoadID).lanes)*2; 
+    %dichte. extend the road length to 1000 meters
+    vehicleCountTemp = round(roads(analysisRoadID).getVehicleCount(0,0,roads(analysisRoadID).lanes)*(1000/roads(analysisRoadID).getLength)); 
 
     %average speed 
     v=0;
@@ -222,11 +221,9 @@ while(true)
 
         v = v + vehicles(vehicID).v;
     end
-    %avg cells / time
-    v = v / vehicleCountTemp;
+    %avg cells / time im km/h
+    v = (v / vehicleCountTemp)* 5 *3.6;
 
-    %to km/h
-    v = v * 5 *3.6;
     scatter(ax3,vehicleCountTemp,v*vehicleCountTemp,'LineWidth',1.5','Marker','*','MarkerEdgeColor','r');
     
     %%

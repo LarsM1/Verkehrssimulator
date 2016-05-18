@@ -135,7 +135,7 @@ classdef road < handle
             end
         end
         
-        function [roads,vehicles] = generate(obj,vehicles,roads)
+        function [roads,vehicles] = generate(obj,vehicles,roads,despawnVehicles,exitRoadID)
             %beschleunigen
             for cell=1:length(obj.cells)
                 for lane = 1:obj.lanes
@@ -199,6 +199,10 @@ classdef road < handle
                         if vehicles(vehicID).switchToThisRoad == -1
                             %opportunities to drive next
                             tempNeighbours = get_neighbours(roads, obj.to);
+                            %remove exit road if despawning if disabled
+                            if despawnVehicles == false
+                                tempNeighbours = tempNeighbours(tempNeighbours ~= exitRoadID);
+                            end
                             %is there no road to drive to? -->vehicle is on
                             %an exit road: delete it
                             if isempty(tempNeighbours)
