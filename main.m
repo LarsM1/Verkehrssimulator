@@ -48,7 +48,7 @@ connectivity_matrix(191,194)=1;
 connectivity_matrix(210,195)=1;
 
 %create road objects out of the parsed data
-roads = create_roads(connectivity_matrix,uniquend.id, intersection_node_indices,parsed_osm.bounds);
+roads = create_roads(connectivity_matrix,uniquend.id, intersection_node_indices,parsed_osm.bounds,maximumLanes,cellLengthInMeters,maximumRoadSpeed);
 
 %create roads to enter/exit the network
 %enter road
@@ -56,13 +56,13 @@ startID=188;
 enterRoad = road(length(roads)+1,-1,startID,...
                 [parsed_osm.bounds(1,1); uniquend.id(2,find(intersection_node_indices==startID))],...
                 uniquend.id(:,find(intersection_node_indices==startID)),...
-                5,1,parsed_osm.bounds);
+                maximumVehicleSpeed,1,parsed_osm.bounds,cellLengthInMeters);
 %exit road
 endID = 195;
 exitRoad = road(length(roads)+2,endID,-2,...
                 uniquend.id(:,find(intersection_node_indices==endID)),...
                 [uniquend.id(1,find(intersection_node_indices==endID)); parsed_osm.bounds(2,2)+0.001],...
-                5,1,parsed_osm.bounds);
+                maximumVehicleSpeed,1,parsed_osm.bounds,cellLengthInMeters);
 roads = [roads enterRoad exitRoad];
 
 entryExitRoad = [length(roads)-1;length(roads)];
@@ -75,12 +75,15 @@ entryExitRoad = [length(roads)-1;length(roads)];
 %  speed6=randi(5);
 %  speed7=randi(5);
 %  
-vehicles =  vehicle(1,0,0);
-roads(1).cells(1,1)=1;
-% vehicles = [vehicles vehicle(4,speed3,0)];
-% vehicles = [vehicles vehicle(5,speed4,1)];
+%vehicles =  vehicle(1,0,0);
+%vehicles = [vehicles vehicle(2,3,3)];
+%vehicles = [vehicles vehicle(3,3,3)];
 % vehicles = [vehicles vehicle(6,speed5,1)];
 % vehicles = [vehicles vehicle(7,speed6,1)];
+
+%roads(2).cells(1,10)=3;
+%roads(2).cells(1,11)=2;
+%roads(2).cells(1,12)=1;
 
 % yo1=randi(5);
 % yo2=randi(5);
@@ -117,9 +120,9 @@ roads(1).cells(1,1)=1;
 
 %% move cars
 circles = [];
-%vehicles = [];
+vehicles = [];
 count=0;
-ID_counter=2;
+ID_counter=1;
 vehiclePositionMatching={};
 
 analysisRoadID = 2;
@@ -130,8 +133,8 @@ fig3 = figure('name',['road ' num2str(analysisRoadID) ' [' num2str(roads(analysi
 ax2 = axes('Parent', fig2);
 ax3 = axes('Parent', fig3);
 
-xlabel(ax2,'Time (iteration)')
-ylabel(ax2,'Position (cell index)')
+xlabel(ax2,'Time (seconds)')
+ylabel(ax2,'Position (meters)')
 title(ax2,'Ort/Zeit Diagramm');
 hold (ax2,'on');
 
@@ -142,14 +145,14 @@ axis(ax3,[0 inf, 0 inf]);
 hold (ax3,'on');
 
 while(true)
-    pause(1/100);
+    pause(1/20);
     count = count+1;
 
     %spawn random vehicles on random roads
-    if rand(1) > 0.7 && spawnVehicles
+    if rand(1) < vehicleSpawnProbability && spawnVehicles
         %spawn random cars in the entering street (bottom left)
         if roads(enterRoad.roadID).cells(1) == 0 
-            vehicles = [vehicles vehicle(ID_counter,randi([3,5]),2)];
+            vehicles = [vehicles vehicle(ID_counter,randi([minimumVehicleSpeed,maximumVehicleSpeed]),2)];
             ID_counter = ID_counter + 1;
             roads(enterRoad.roadID).cells(1) = vehicles(length(vehicles)).vehicleID;
         end
@@ -193,10 +196,9 @@ while(true)
     [vehicleIDs, positions] = roads(analysisRoadID).getVehiclePositionRelation(0,0,analysisRoadLane);
     
     %create ort/zeit data and match it to the existing data
-    vehiclePositionMatching = create_raum_zeit_data(vehicleIDs,positions,vehiclePositionMatching, count);
+    vehiclePositionMatching = create_raum_zeit_data(vehicleIDs,positions,vehiclePositionMatching, count,cellLengthInMeters);
    
-    %subplot(1,2,1);
-    axis(ax2,[count-60 count, 0 length(roads(analysisRoadID).cells)]);
+    axis(ax2,[count-60 count, 0 length(roads(analysisRoadID).cells)*cellLengthInMeters]);
 
     for i=1:size(vehiclePositionMatching,2)
         plot(ax2,vehiclePositionMatching{2,i}(:,1),vehiclePositionMatching{2,i}(:,2));
@@ -222,7 +224,7 @@ while(true)
         v = v + vehicles(vehicID).v;
     end
     %avg cells / time im km/h
-    v = (v / vehicleCountTemp)* 5 *3.6;
+    v = (v / vehicleCountTemp)* cellLengthInMeters *3.6;
 
     scatter(ax3,vehicleCountTemp,v*vehicleCountTemp,'LineWidth',1.5','Marker','*','MarkerEdgeColor','r');
     

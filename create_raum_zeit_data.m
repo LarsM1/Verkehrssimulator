@@ -1,18 +1,22 @@
-function [ vehiclePositionMatching ] = create_raum_zeit_data(vehicleIDs, positions, vehiclePositionMatching, count)
+function [ vehiclePositionMatching ] = create_raum_zeit_data(vehicleIDs, positions, vehiclePositionMatching, count,cellLengthInMeters)
 %create_raum_zeit_diagramm create and update the data structure containing
 %the vehicle IDs and their positions in relation to the iteration
 
- %initial cell setup
-    if isempty(vehiclePositionMatching)
+
+%convert to meters
+positions = positions.*cellLengthInMeters;
+%initial cell setup
+	if isempty(vehiclePositionMatching)
         if isempty(vehicleIDs) == false
             index1 = 1;
+
             for i=1:length(vehicleIDs)
                 vehiclePositionMatching{1,index1} = vehicleIDs(index1);
                 vehiclePositionMatching{2,index1} = [count, positions(index1)];
                 index1 = index1 +1;
             end
         end
-    else           
+	else           
         for i=1:length(vehicleIDs)
             %new vehicle entered the road?
             if isempty(find([vehiclePositionMatching{1,:}] == vehicleIDs(i)))
@@ -36,6 +40,6 @@ function [ vehiclePositionMatching ] = create_raum_zeit_data(vehicleIDs, positio
                 vehiclePositionMatching(:,i)=[];
             end
         end
-    end
+	end
 end
 

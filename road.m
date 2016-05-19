@@ -14,7 +14,7 @@ classdef road < handle
 
     methods
         %constructor
-        function obj = road(roadID,from,to,start_coordinate,end_coordinate,v_max,lanes,bounds)
+        function obj = road(roadID,from,to,start_coordinate,end_coordinate,v_max,lanes,bounds,cellLengthInMeters)
             obj.roadID=roadID;
             obj.from=from;
             obj.to=to;
@@ -28,7 +28,7 @@ classdef road < handle
             if mod(obj.getDirection(bounds),2) == 0 
                 factor = 1;
             else
-                factor = 5;
+                factor = cellLengthInMeters;
             end
             obj.cells=zeros(lanes,round(obj.getLength/factor));
         end
@@ -392,7 +392,13 @@ classdef road < handle
                     if obj.lanes > 1 && vehicles(vehicID).switchToThisLane < 0 && alpha > 6 && alpha+vehicles(vehicID).v+2 < length(obj.cells)
                         %vehicle in front?
                         inFront = 0;
-                        for r = alpha+1:alpha+vehicles(vehicID).v
+                        if vehicles(vehicID).v == 0
+                            stepsForward = 1;
+                        else
+                            stepsForward = vehicles(vehicID).v;
+                        end
+                        
+                        for r = alpha+1:alpha+stepsForward
                             if obj.cells(lane,r) ~= 0
                                 inFront = obj.cells(lane,r);
                                 break;
