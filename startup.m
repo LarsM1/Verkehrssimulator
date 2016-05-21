@@ -15,6 +15,6 @@ maximumVehicleSpeed = 5;
 %must be in [0,1]
 vehicleSpawnProbability = 0.3;
 
-cellLengthInMeters = 5;
+cellLengthInMeters = 1;
 
 maximumRoadSpeed = 5;

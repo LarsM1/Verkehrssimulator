@@ -26,7 +26,7 @@ classdef road < handle
             %if the street is going up or down make it longer
             %(langitude/latitude ratio is different)
             if mod(obj.getDirection(bounds),2) == 0 
-                factor = 1;
+                factor = cellLengthInMeters/(3 +1/3);
             else
                 factor = cellLengthInMeters;
             end

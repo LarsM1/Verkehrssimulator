@@ -1,3 +1,4 @@
+%initialize 
 startup
 
 %% name file
@@ -67,56 +68,12 @@ roads = [roads enterRoad exitRoad];
 
 entryExitRoad = [length(roads)-1;length(roads)];
 %% create test vehicles and place on street
-%  speed1=randi(5);
-%  speed2=randi(5);
-%  speed3=randi(5);
-%  speed4=randi(5);
-%  speed5=randi(5);
-%  speed6=randi(5);
-%  speed7=randi(5);
-%  
+ 
 %vehicles =  vehicle(1,0,0);
 %vehicles = [vehicles vehicle(2,3,3)];
 %vehicles = [vehicles vehicle(3,3,3)];
 % vehicles = [vehicles vehicle(6,speed5,1)];
 % vehicles = [vehicles vehicle(7,speed6,1)];
-
-%roads(2).cells(1,10)=3;
-%roads(2).cells(1,11)=2;
-%roads(2).cells(1,12)=1;
-
-% yo1=randi(5);
-% yo2=randi(5);
-% yo3=randi(5);
-% yo4=randi(5);
-% yo5=randi(5);
-% yo6=randi(5);
-% yo7=randi(5);
-% 
-% while yo1==yo5
-%     yo5=randi(5);
-% end
-% 
-% while yo2==yo6
-%     yo6=randi(5);
-% end
-% while yo3==yo7
-%     yo7=randi(5);
-% end
-% 
-% n=length(roads);
-% m=4;
-% r=randperm(n);
-% r=r(1:m);
-
-
-% roads(r(1)).cells(length(roads(r(1)).cells)-yo1) = vehicles(1).vehicleID;
-% roads(r(1)).cells(length(roads(r(1)).cells)-yo5) = vehicles(2).vehicleID;
-% roads(r(2)).cells(length(roads(r(2)).cells)-yo2) = vehicles(3).vehicleID;
-% roads(r(2)).cells(length(roads(r(2)).cells-yo6)) = vehicles(4).vehicleID;
-% roads(r(3)).cells(length(roads(r(3)).cells)-yo3) = vehicles(5).vehicleID;
-% roads(r(3)).cells(length(roads(r(3)).cells)-yo7) = vehicles(6).vehicleID;
-% roads(r(4)).cells(length(roads(r(4)).cells)-yo4) = vehicles(7).vehicleID;
 
 %% move cars
 circles = [];
@@ -130,12 +87,14 @@ analysisRoadLane = roads(analysisRoadID).lanes;
 
 fig2 = figure('name',['road ' num2str(analysisRoadID) ' [' num2str(roads(analysisRoadID).from) '->' num2str(roads(analysisRoadID).to) '] at lane ' num2str(analysisRoadLane)]);
 fig3 = figure('name',['road ' num2str(analysisRoadID) ' [' num2str(roads(analysisRoadID).from) '->' num2str(roads(analysisRoadID).to) '] at lane ' num2str(analysisRoadLane)]);
+fig4 = figure('name',['road ' num2str(analysisRoadID) ' [' num2str(roads(analysisRoadID).from) '->' num2str(roads(analysisRoadID).to) '] at lane ' num2str(analysisRoadLane)]);
+
 ax2 = axes('Parent', fig2);
 ax3 = axes('Parent', fig3);
-
+ax4 = axes('Parent', fig4);
 xlabel(ax2,'Time (seconds)')
 ylabel(ax2,'Position (meters)')
-title(ax2,'Ort/Zeit Diagramm');
+title(ax2,'Raum-Zeit-Diagramm');
 hold (ax2,'on');
 
 xlabel(ax3,'Dichte p (Fahrzeuge/km)')
@@ -191,11 +150,11 @@ while(true)
         circles = roads(i).draw(circles, ax,parsed_osm.bounds, vehicles);
     end
     
-    %% Ort-Zeit
-    %generate the Ort/Zeit data
+    %% Raum-Zeit
+    %generate the Raum/Zeit data
     [vehicleIDs, positions] = roads(analysisRoadID).getVehiclePositionRelation(0,0,analysisRoadLane);
     
-    %create ort/zeit data and match it to the existing data
+    %create Raum/zeit data and match it to the existing data
     vehiclePositionMatching = create_raum_zeit_data(vehicleIDs,positions,vehiclePositionMatching, count,cellLengthInMeters);
    
     axis(ax2,[count-60 count, 0 length(roads(analysisRoadID).cells)*cellLengthInMeters]);
@@ -210,17 +169,16 @@ while(true)
 
     %average speed 
     v=0;
-    for abc=1:length(roads(analysisRoadID).cells)
-        if roads(analysisRoadID).cells(analysisRoadLane,abc) <= 0
+    for i=1:length(roads(analysisRoadID).cells)
+        if roads(analysisRoadID).cells(analysisRoadLane,i) <= 0
             continue;
         end
         for a = 1:length(vehicles)
-            if roads(analysisRoadID).cells(analysisRoadLane,abc) == vehicles(a).vehicleID
+            if roads(analysisRoadID).cells(analysisRoadLane,i) == vehicles(a).vehicleID
                 vehicID = a ;
                 break;
             end
         end
-
         v = v + vehicles(vehicID).v;
     end
     %avg cells / time im km/h
