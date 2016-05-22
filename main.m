@@ -49,7 +49,7 @@ connectivity_matrix(191,194)=1;
 connectivity_matrix(210,195)=1;
 
 %create road objects out of the parsed data
-roads = create_roads(connectivity_matrix,uniquend.id, intersection_node_indices,parsed_osm.bounds,maximumLanes,cellLengthInMeters,maximumRoadSpeed);
+roads = create_roads(connectivity_matrix,uniquend.id, intersection_node_indices,parsed_osm.bounds,settings);
 
 %create roads to enter/exit the network
 %enter road
@@ -57,61 +57,52 @@ startID=188;
 enterRoad = road(length(roads)+1,-1,startID,...
                 [parsed_osm.bounds(1,1); uniquend.id(2,find(intersection_node_indices==startID))],...
                 uniquend.id(:,find(intersection_node_indices==startID)),...
-                maximumVehicleSpeed,1,parsed_osm.bounds,cellLengthInMeters);
+                settings.maximumVehicleSpeed,1,parsed_osm.bounds,settings.cellLengthInMeters);
 %exit road
 endID = 195;
 exitRoad = road(length(roads)+2,endID,-2,...
                 uniquend.id(:,find(intersection_node_indices==endID)),...
                 [uniquend.id(1,find(intersection_node_indices==endID)); parsed_osm.bounds(2,2)+0.001],...
-                maximumVehicleSpeed,1,parsed_osm.bounds,cellLengthInMeters);
+                settings.maximumVehicleSpeed,1,parsed_osm.bounds,settings.cellLengthInMeters);
 roads = [roads enterRoad exitRoad];
 
 entryExitRoad = [length(roads)-1;length(roads)];
-%% create test vehicles and place on street
- 
-%vehicles =  vehicle(1,0,0);
-%vehicles = [vehicles vehicle(2,3,3)];
-%vehicles = [vehicles vehicle(3,3,3)];
-% vehicles = [vehicles vehicle(6,speed5,1)];
-% vehicles = [vehicles vehicle(7,speed6,1)];
 
 %% move cars
-circles = [];
+carArrows = [];
 vehicles = [];
-count=0;
+count = 0;
 ID_counter=1;
 vehiclePositionMatching={};
 
-analysisRoadID = 2;
-analysisRoadLane = roads(analysisRoadID).lanes;
+if settings.raumzeitdiagramm
+    fig2 = figure('name',['road ' num2str(settings.analysisRoadID) ' [' num2str(roads(settings.analysisRoadID).from) '->' num2str(roads(settings.analysisRoadID).to) '] at lane ' num2str(settings.analysisRoadLane)]);
+    ax2 = axes('Parent', fig2);
+    xlabel(ax2,'Time (seconds)')
+    ylabel(ax2,'Position (meters)')
+    title(ax2,'Raum-Zeit-Diagramm');
+    hold (ax2,'on');
+end
 
-fig2 = figure('name',['road ' num2str(analysisRoadID) ' [' num2str(roads(analysisRoadID).from) '->' num2str(roads(analysisRoadID).to) '] at lane ' num2str(analysisRoadLane)]);
-fig3 = figure('name',['road ' num2str(analysisRoadID) ' [' num2str(roads(analysisRoadID).from) '->' num2str(roads(analysisRoadID).to) '] at lane ' num2str(analysisRoadLane)]);
-fig4 = figure('name',['road ' num2str(analysisRoadID) ' [' num2str(roads(analysisRoadID).from) '->' num2str(roads(analysisRoadID).to) '] at lane ' num2str(analysisRoadLane)]);
-
-ax2 = axes('Parent', fig2);
-ax3 = axes('Parent', fig3);
-ax4 = axes('Parent', fig4);
-xlabel(ax2,'Time (seconds)')
-ylabel(ax2,'Position (meters)')
-title(ax2,'Raum-Zeit-Diagramm');
-hold (ax2,'on');
-
-xlabel(ax3,'Dichte p (Fahrzeuge/km)')
-ylabel(ax3,'Fluss Q (Fahrzeuge/h)')
-title(ax3,'Fundamentaldiagramm');
-axis(ax3,[0 inf, 0 inf]);
-hold (ax3,'on');
+if settings.fundamentaldiagramm
+    fig3 = figure('name',['road ' num2str(settings.analysisRoadID) ' [' num2str(roads(settings.analysisRoadID).from) '->' num2str(roads(settings.analysisRoadID).to) '] at lane ' num2str(settings.analysisRoadLane)]);
+    ax3 = axes('Parent', fig3);
+    xlabel(ax3,'Dichte p (Fahrzeuge/km)')
+    ylabel(ax3,'Fluss Q (Fahrzeuge/h)')
+    title(ax3,'Fundamentaldiagramm');
+    axis(ax3,[0 inf, 0 inf]);
+    hold (ax3,'on');
+end
 
 while(true)
-    pause(1/20);
+    pause(settings.delay);
     count = count+1;
 
     %spawn random vehicles on random roads
-    if rand(1) < vehicleSpawnProbability && spawnVehicles
+    if rand(1) < settings.vehicleSpawnProbability && settings.spawnVehicles
         %spawn random cars in the entering street (bottom left)
         if roads(enterRoad.roadID).cells(1) == 0 
-            vehicles = [vehicles vehicle(ID_counter,randi([minimumVehicleSpeed,maximumVehicleSpeed]),2)];
+            vehicles = [vehicles vehicle(ID_counter,randi([settings.minimumVehicleSpeed,settings.maximumVehicleSpeed]),2)];
             ID_counter = ID_counter + 1;
             roads(enterRoad.roadID).cells(1) = vehicles(length(vehicles)).vehicleID;
         end
@@ -121,22 +112,22 @@ while(true)
     %generate
 	for i=1:length(roads)
         roads(i).overtake(vehicles);
-        [roads,vehicles] = roads(i).generate(vehicles,roads,despawnVehicles,entryExitRoad(2));
+        [roads,vehicles] = roads(i).generate(vehicles,roads,settings,entryExitRoad(2));
 	end
     
     %delete old car arrows
-    for i = 1:length(circles)
-        delete(circles(i));
+    for i = 1:length(carArrows)
+        delete(carArrows(i));
     end
     
-	circles = [];
+	carArrows = [];
     carCount = [];
 
     %remove reservation cells (== -1) and update map
     for i=1:length(roads)
         for k=1:roads(i).lanes
             for j=1:length(roads(i).cells)
-                if roads(i).cells(k,j) <0
+                if roads(i).cells(k,j) < 0
                     roads(i).cells(k,j) = 0;
                     error('ERROR - cell -1');
                 end
@@ -147,47 +138,50 @@ while(true)
                 end
             end
         end
-        circles = roads(i).draw(circles, ax,parsed_osm.bounds, vehicles);
+        carArrows = roads(i).draw(carArrows, ax,parsed_osm.bounds, vehicles);
     end
     
     %% Raum-Zeit
-    %generate the Raum/Zeit data
-    [vehicleIDs, positions] = roads(analysisRoadID).getVehiclePositionRelation(0,0,analysisRoadLane);
-    
-    %create Raum/zeit data and match it to the existing data
-    vehiclePositionMatching = create_raum_zeit_data(vehicleIDs,positions,vehiclePositionMatching, count,cellLengthInMeters);
-   
-    axis(ax2,[count-60 count, 0 length(roads(analysisRoadID).cells)*cellLengthInMeters]);
+    if settings.raumzeitdiagramm
+        %generate the Raum/Zeit data
+        [vehicleIDs, positions] = roads(settings.analysisRoadID).getVehiclePositionRelation(0,0,settings.analysisRoadLane);
 
-    for i=1:size(vehiclePositionMatching,2)
-        plot(ax2,vehiclePositionMatching{2,i}(:,1),vehiclePositionMatching{2,i}(:,2));
+        %create Raum/zeit data and match it to the existing data
+        vehiclePositionMatching = create_raum_zeit_data(vehicleIDs,positions,vehiclePositionMatching, count,settings.cellLengthInMeters);
+
+        axis(ax2,[count-60 count, 0 length(roads(settings.analysisRoadID).cells)*settings.cellLengthInMeters]);
+
+        for i=1:size(vehiclePositionMatching,2)
+            plot(ax2,vehiclePositionMatching{2,i}(:,1),vehiclePositionMatching{2,i}(:,2));
+        end
     end
     
     %% Fundamentaldiagramm
-    %dichte. extend the road length to 1000 meters
-    vehicleCountTemp = round(roads(analysisRoadID).getVehicleCount(0,0,roads(analysisRoadID).lanes)*(1000/roads(analysisRoadID).getLength)); 
+    if settings.fundamentaldiagramm
+        %dichte. extend the road length to 1000 meters
+        vehicleCountTemp = round(roads(settings.analysisRoadID).getVehicleCount(0,0,roads(settings.analysisRoadID).lanes)*(1000/roads(settings.analysisRoadID).getLength)); 
 
-    %average speed 
-    v=0;
-    for i=1:length(roads(analysisRoadID).cells)
-        if roads(analysisRoadID).cells(analysisRoadLane,i) <= 0
-            continue;
-        end
-        for a = 1:length(vehicles)
-            if roads(analysisRoadID).cells(analysisRoadLane,i) == vehicles(a).vehicleID
-                vehicID = a ;
-                break;
+        %average speed 
+        v=0;
+        for i=1:length(roads(settings.analysisRoadID).cells)
+            if roads(settings.analysisRoadID).cells(settings.analysisRoadLane,i) <= 0
+                continue;
             end
+            for a = 1:length(vehicles)
+                if roads(settings.analysisRoadID).cells(settings.analysisRoadLane,i) == vehicles(a).vehicleID
+                    vehicID = a ;
+                    break;
+                end
+            end
+            v = v + vehicles(vehicID).v;
         end
-        v = v + vehicles(vehicID).v;
-    end
-    %avg cells / time im km/h
-    v = (v / vehicleCountTemp)* cellLengthInMeters *3.6;
+        %avg cells / time im km/h
+        v = (v / vehicleCountTemp)* settings.cellLengthInMeters *3.6;
 
-    scatter(ax3,vehicleCountTemp,v*vehicleCountTemp,'LineWidth',1.5','Marker','*','MarkerEdgeColor','r');
+        scatter(ax3,vehicleCountTemp,v*vehicleCountTemp,'LineWidth',1.5','Marker','*','MarkerEdgeColor','r');
+    end
     
-    %%
-    %reset already-moved-status of vehicles (switchToThisRoad == -2) 
+    %% reset already-moved-status of vehicles (switchToThisRoad == -2) 
     for i=1:length(vehicles)
         if vehicles(i).switchToThisRoad == -2 || vehicles(i).switchToThisLane == -2
             vehicles(i).switchToThisRoad = -1; 

@@ -1,4 +1,4 @@
-function [ roads ] = create_roads( connectivity_matrix, node_positions, intersection_node_indices,bounds,maximumLanes,cellLengthInMeters,maximumRoadSpeed)
+function [ roads ] = create_roads( connectivity_matrix, node_positions, intersection_node_indices,bounds,settings)
 %create_roads creates road objects out of the connectivity matrix
 %   each track has an own object
 
@@ -10,7 +10,7 @@ function [ roads ] = create_roads( connectivity_matrix, node_positions, intersec
                 a=find(intersection_node_indices == i);
                 b=find(intersection_node_indices == j);
                                                                                     
-                tempRoad=road(count,i,j,node_positions(:,a),node_positions(:,b),maximumRoadSpeed,randi(maximumLanes),bounds,cellLengthInMeters);
+                tempRoad=road(count,i,j,node_positions(:,a),node_positions(:,b),settings.maximumRoadSpeed,randi([settings.minimumLanes,settings.maximumLanes]),bounds,settings.cellLengthInMeters);
                 
                 count=count+1;
                 roads=[roads tempRoad];

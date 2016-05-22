@@ -135,7 +135,7 @@ classdef road < handle
             end
         end
         
-        function [roads,vehicles] = generate(obj,vehicles,roads,despawnVehicles,exitRoadID)
+        function [roads,vehicles] = generate(obj,vehicles,roads,settings,exitRoadID)
             %beschleunigen
             for cell=1:length(obj.cells)
                 for lane = 1:obj.lanes
@@ -158,7 +158,7 @@ classdef road < handle
                 end
             end
 
-            %bremsen
+            %% bremsen
             for alpha=1:length(obj.cells)
                 for lane=1:obj.lanes
                     %empty?
@@ -200,7 +200,7 @@ classdef road < handle
                             %opportunities to drive next
                             tempNeighbours = get_neighbours(roads, obj.to);
                             %remove exit road if despawning if disabled
-                            if despawnVehicles == false
+                            if settings.despawnVehicles == false
                                 tempNeighbours = tempNeighbours(tempNeighbours ~= exitRoadID);
                             end
                             %is there no road to drive to? -->vehicle is on
@@ -260,23 +260,30 @@ classdef road < handle
                 end
             end
 
-            %trödeln/überholen
+            %% trödeln
             for alpha=1:length(obj.cells)
                 for lane=1:obj.lanes
                     if obj.cells(lane,alpha) > 0
-                        if rand(1)>0.9
-                            for a=1:length(vehicles)
-                                if (obj.cells(lane,alpha) == vehicles(a).vehicleID)
-                                    vehicID = a;
-                                    break;
-                                end
+                        for a=1:length(vehicles)
+                            if (obj.cells(lane,alpha) == vehicles(a).vehicleID)
+                                vehicID = a;
+                                break;
                             end
-
-                            %did the vehicle generate already? skip this cell
-                            if vehicles(vehicID).switchToThisRoad == -2 ||vehicles(vehicID).switchToThisLane == -2
-                                continue;
-                            end
-
+                        end
+                        
+                        %did the vehicle generate already? skip this cell
+                        if vehicles(vehicID).switchToThisRoad == -2 ||vehicles(vehicID).switchToThisLane == -2
+                            continue;
+                        end
+                        
+                        %barlovic model
+                        if vehicles(vehicID).v == 1 && vehicles(vehicID).status == 1
+                            p = settings.p0;
+                        else
+                            p = settings.p;
+                        end
+                        
+                        if rand(1) < p
                             %if the vehicle isnt standing and not about to
                             %switch roads/lanes
                             if (vehicles(vehicID).v) > 0 && (vehicles(vehicID).switchToThisRoad == -1) && (vehicles(vehicID).switchToThisLane == -1)
@@ -287,7 +294,7 @@ classdef road < handle
                 end
             end
 
-            %bewegen
+            %% bewegen
             for alpha=length(obj.cells):-1:1
                 for lane=1:obj.lanes
                     if obj.cells(lane,alpha) > 0

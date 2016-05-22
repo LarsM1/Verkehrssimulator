@@ -3,18 +3,34 @@ clear all
 addpath ('osmFunctions');
 addpath(genpath('dependencies'));
 
-spawnVehicles = true;
-despawnVehicles = false;
+settings.spawnVehicles = true;
+settings.despawnVehicles = false;
 %2 lanes are recommended
-maximumLanes = 2;
+settings.minimumLanes = 2;
+settings.maximumLanes = 2;
 
-minimumVehicleSpeed = 3;
-maximumVehicleSpeed = 5;
+settings.minimumVehicleSpeed = 3;
+settings.maximumVehicleSpeed = 5;
 
 %vehicle spawn probability per iteration
 %must be in [0,1]
-vehicleSpawnProbability = 0.3;
+settings.vehicleSpawnProbability = 0.3;
 
-cellLengthInMeters = 1;
+settings.cellLengthInMeters = 5;
 
-maximumRoadSpeed = 5;
+settings.maximumRoadSpeed = 5;
+
+%tröden probability
+settings.p=0.2;
+%barlovic model trödel probability
+settings.p0=0.4;
+
+%run delay
+settings.delay=1/20;
+
+%analysis settings
+settings.analysisRoadID = 2;
+settings.analysisRoadLane = 1;
+
+settings.fundamentaldiagramm=true;
+settings.raumzeitdiagramm=true;
