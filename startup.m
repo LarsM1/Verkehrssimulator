@@ -30,7 +30,7 @@ settings.delay=1/20;
 
 %analysis settings
 settings.analysisRoadID = 2;
-settings.analysisRoadLane = 1;
+settings.analysisRoadLane = 2;
 
-settings.fundamentaldiagramm=true;
-settings.raumzeitdiagramm=true;
+settings.fundamentaldiagramm = true;
+settings.raumzeitdiagramm = true;

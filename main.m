@@ -94,10 +94,53 @@ if settings.fundamentaldiagramm
     hold (ax3,'on');
 end
 
+%1=maximalkapazität erreichen (fundamentaldiagramm)
+%2=panne (raum-zeit)
+testScenario=0;
+if testScenario==1
+    if settings.minimumLanes~=2 || settings.maximumLanes~=2
+        error('set min/maxlanes to 2');
+    end
+    vehicles=vehicle(1,0,0);
+    vehicles=[vehicles vehicle(2,0,0)];
+    vehicles=[vehicles vehicle(3,0,0)];
+    vehicles=[vehicles vehicle(4,0,0)];
+    vehicles=[vehicles vehicle(5,0,0)];
+    
+    roads(1).cells(1,1)=1;
+    roads(1).cells(2,1)=2;
+    roads(11).cells(1,1)=3;
+    roads(11).cells(2,1)=4;
+    roads(12).cells(2,1)=5;
+    
+    ID_counter=6;
+elseif testScenario==2
+    if settings.minimumLanes~=2 || settings.maximumLanes~=2
+        error('set min/maxlanes to 2');
+    end
+    
+    vehicles=vehicle(1,0,0);
+    vehicles=[vehicles vehicle(2,0,0)];
+    vehicles=[vehicles vehicle(3,0,0)];
+    
+    roads(1).cells(1,1)=2;
+    roads(1).cells(2,1)=3;
+    roads(2).cells(settings.analysisRoadLane,round(length(roads(2).cells)/2))=1;
+
+    
+    ID_counter=4;
+end
+
+
 while(true)
     pause(settings.delay);
     count = count+1;
-
+    title (ax,['Traffic Network - vehicles: ' num2str(length(vehicles)) '- generation: ' num2str(count)]);
+    
+    if testScenario==2 && count==180
+        vehicles(1).v_max=5;
+    end
+    
     %spawn random vehicles on random roads
     if rand(1) < settings.vehicleSpawnProbability && settings.spawnVehicles
         %spawn random cars in the entering street (bottom left)
@@ -106,7 +149,6 @@ while(true)
             ID_counter = ID_counter + 1;
             roads(enterRoad.roadID).cells(1) = vehicles(length(vehicles)).vehicleID;
         end
-        title (ax,['Traffic Network - vehicles: ' num2str(length(vehicles))]);
     end
     
     %generate
@@ -159,7 +201,7 @@ while(true)
     %% Fundamentaldiagramm
     if settings.fundamentaldiagramm
         %dichte. extend the road length to 1000 meters
-        vehicleCountTemp = round(roads(settings.analysisRoadID).getVehicleCount(0,0,roads(settings.analysisRoadID).lanes)*(1000/roads(settings.analysisRoadID).getLength)); 
+        vehicleCountTemp = round(roads(settings.analysisRoadID).getVehicleCount(0,0,settings.analysisRoadLane)*(1000/roads(settings.analysisRoadID).getLength)); 
 
         %average speed 
         v=0;
@@ -178,6 +220,7 @@ while(true)
         %avg cells / time im km/h
         v = (v / vehicleCountTemp)* settings.cellLengthInMeters *3.6;
 
+        
         scatter(ax3,vehicleCountTemp,v*vehicleCountTemp,'LineWidth',1.5','Marker','*','MarkerEdgeColor','r');
     end
     

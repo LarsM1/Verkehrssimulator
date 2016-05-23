@@ -114,11 +114,11 @@ classdef road < handle
                             end
                         end
                         
-                        if vehicles(vehicID).v == vehicles(vehicID).v_max %max vehicle speed
+                        if vehicles(vehicID).v == vehicles(vehicID).v_max && vehicles(vehicID).v_max~=0 %max vehicle speed
                             color = 'g';
                         elseif vehicles(vehicID).v == obj.v_max %max road speed
                             color = 'y';
-                        elseif vehicles(vehicID).v == 0 %standing
+                        elseif vehicles(vehicID).v == 0 || vehicles(vehicID).v_max == 0 %standing
                             color = 'k';
                         elseif vehicles(vehicID).status == 1 %accelerating
                             color = 'b';
@@ -272,7 +272,7 @@ classdef road < handle
                         end
                         
                         %did the vehicle generate already? skip this cell
-                        if vehicles(vehicID).switchToThisRoad == -2 ||vehicles(vehicID).switchToThisLane == -2
+                        if vehicles(vehicID).switchToThisRoad == -2 || vehicles(vehicID).switchToThisLane == -2
                             continue;
                         end
                         
