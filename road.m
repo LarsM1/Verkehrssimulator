@@ -1,5 +1,5 @@
 classdef road < handle
-    % road represents a one way road
+    % road represents a one way street with X lanes
     
     properties
         roadID
@@ -329,19 +329,9 @@ classdef road < handle
                                 XCellsTooFar = (alpha+vehicles(vehicID).v) - length(obj.cells);
 
                                 for b=1:XCellsTooFar
-                                    if roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b) > 0 %vehicle blocking the way?
-                                        error('error2');
-                                    end
-
                                     %road is reserved, but for which vehicle?
                                     if -1 * (roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b)) == vehicles(vehicID).vehicleID
                                         if b == XCellsTooFar %vehicle can drive all the way on the new road
-                                            if roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b) > 0
-                                                error('error1');
-                                            end
-                                            if roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,XCellsTooFar) > 0
-                                                error('error6');
-                                            end
                                             roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,XCellsTooFar) = vehicles(vehicID).vehicleID;
                                             %-2 indicates that the vehicle just
                                             %moved to prevent a vehicle moving
@@ -350,9 +340,6 @@ classdef road < handle
                                             vehicles(vehicID).switchToThisLane = -2;
                                             
                                         else %delete reservation
-                                            if roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b) > 0
-                                                error('error4');
-                                            end
                                             roads(tempRoadID).cells(vehicles(vehicID).switchToThisLane,b) = 0;    
                                         end
                                     end
@@ -362,9 +349,6 @@ classdef road < handle
 
                         %remove the vehicle from its old position
                         if vehicles(vehicID).v > 0
-                            if vehicles(vehicID).vehicleID ~= obj.cells(lane,alpha)
-                                error('error3');
-                            end
                             obj.cells(lane, alpha) = 0;
                         end
 

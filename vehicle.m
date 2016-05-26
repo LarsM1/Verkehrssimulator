@@ -1,6 +1,5 @@
 classdef vehicle < handle
-    %UNTITLED Summary of this class goes here
-    %   Detailed explanation goes here
+    %vehicle  vehicles are placed on road objects
     
     properties
         vehicleID

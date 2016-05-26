@@ -3,8 +3,13 @@ clear all
 addpath ('osmFunctions');
 addpath(genpath('dependencies'));
 
+%% test scenario
+%1=reach maximum capacity of road (fundamentaldiagramm)
+%2=panne (raum-zeit)
+settings.testScenario = 0;
+%%
 settings.spawnVehicles = true;
-settings.despawnVehicles = false;
+settings.despawnVehicles = true;
 %2 lanes are recommended
 settings.minimumLanes = 2;
 settings.maximumLanes = 2;

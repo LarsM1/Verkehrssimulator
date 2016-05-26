@@ -34,9 +34,6 @@ positions = positions.*cellLengthInMeters;
         for i=length(toFind):-1:1
             %vehicle is still saved, but not on the road anymore
             if isempty(find(toFind(i) == vehicleIDs))
-                if i > size(vehiclePositionMatching,2) 
-                    error('error 9');
-                end
                 vehiclePositionMatching(:,i)=[];
             end
         end

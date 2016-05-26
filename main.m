@@ -9,12 +9,12 @@ map_img_filename = 'map.png';
 [parsed_osm, osm_xml] = parse_openstreetmap(openstreetmap_filename);
 
 %% plot
-fig = figure('name','Traffic Network');
+fig = figure('name','Nagel Schreckenberg Simulation');
 ax = axes('Parent', fig);
 hold('on')
 
 % plot the network
-plot_way(ax, parsed_osm, map_img_filename) % if you also have a raster image
+plot_way(ax, parsed_osm, map_img_filename)
 
 %% find connectivity
 [connectivity_matrix, intersection_node_indices] = extract_connectivity(parsed_osm);
@@ -76,7 +76,7 @@ ID_counter=1;
 vehiclePositionMatching={};
 
 if settings.raumzeitdiagramm
-    fig2 = figure('name',['road ' num2str(settings.analysisRoadID) ' [' num2str(roads(settings.analysisRoadID).from) '->' num2str(roads(settings.analysisRoadID).to) '] at lane ' num2str(settings.analysisRoadLane)]);
+    fig2 = figure('name',['road ' num2str(settings.analysisRoadID) ' [' num2str(roads(settings.analysisRoadID).from) '->' num2str(roads(settings.analysisRoadID).to) '] - Spur ' num2str(settings.analysisRoadLane)]);
     ax2 = axes('Parent', fig2);
     xlabel(ax2,'Time (seconds)')
     ylabel(ax2,'Position (meters)')
@@ -85,7 +85,7 @@ if settings.raumzeitdiagramm
 end
 
 if settings.fundamentaldiagramm
-    fig3 = figure('name',['road ' num2str(settings.analysisRoadID) ' [' num2str(roads(settings.analysisRoadID).from) '->' num2str(roads(settings.analysisRoadID).to) '] at lane ' num2str(settings.analysisRoadLane)]);
+    fig3 = figure('name',['road ' num2str(settings.analysisRoadID) ' [' num2str(roads(settings.analysisRoadID).from) '->' num2str(roads(settings.analysisRoadID).to) '] - Spur ' num2str(settings.analysisRoadLane)]);
     ax3 = axes('Parent', fig3);
     xlabel(ax3,'Dichte p (Fahrzeuge/km)')
     ylabel(ax3,'Fluss Q (Fahrzeuge/h)')
@@ -95,12 +95,11 @@ if settings.fundamentaldiagramm
 end
 
 %1=maximalkapazität erreichen (fundamentaldiagramm)
-%2=panne (raum-zeit)
-testScenario=0;
-if testScenario==1
-    if settings.minimumLanes~=2 || settings.maximumLanes~=2
-        error('set min/maxlanes to 2');
+if settings.testScenario==1
+    if settings.minimumLanes~=2 || settings.maximumLanes~=2 || settings.analysisRoadID~=2 || settings.analysisRoadLane~=2
+        error('set min/maxlanes to 2/set analysisRoadID to 2, analysisRoadLane to 2');
     end
+    
     vehicles=vehicle(1,0,0);
     vehicles=[vehicles vehicle(2,0,0)];
     vehicles=[vehicles vehicle(3,0,0)];
@@ -114,9 +113,10 @@ if testScenario==1
     roads(12).cells(2,1)=5;
     
     ID_counter=6;
-elseif testScenario==2
-    if settings.minimumLanes~=2 || settings.maximumLanes~=2
-        error('set min/maxlanes to 2');
+%2=panne (raum-zeit)
+elseif settings.testScenario==2
+    if settings.minimumLanes~=2 || settings.maximumLanes~=2 || settings.analysisRoadID~=2 || settings.analysisRoadLane~=2
+        error('set min/maxlanes to 2/set analysisRoadID to 2, analysisRoadLane to 2');
     end
     
     vehicles=vehicle(1,0,0);
@@ -127,7 +127,6 @@ elseif testScenario==2
     roads(1).cells(2,1)=3;
     roads(2).cells(settings.analysisRoadLane,round(length(roads(2).cells)/2))=1;
 
-    
     ID_counter=4;
 end
 
@@ -135,9 +134,9 @@ end
 while(true)
     pause(settings.delay);
     count = count+1;
-    title (ax,['Traffic Network - vehicles: ' num2str(length(vehicles)) '- generation: ' num2str(count)]);
+    title (ax,['Fahrzeuge: ' num2str(length(vehicles)) ' - Generation: ' num2str(count)]);
     
-    if testScenario==2 && count==180
+    if settings.testScenario==2 && count==150
         vehicles(1).v_max=5;
     end
     
@@ -163,23 +162,9 @@ while(true)
     end
     
 	carArrows = [];
-    carCount = [];
 
     %remove reservation cells (== -1) and update map
     for i=1:length(roads)
-        for k=1:roads(i).lanes
-            for j=1:length(roads(i).cells)
-                if roads(i).cells(k,j) < 0
-                    roads(i).cells(k,j) = 0;
-                    error('ERROR - cell -1');
-                end
-
-                %test if car disappeared
-                if roads(i).cells(k,j) > 0
-                    carCount = [carCount roads(i).cells(k,j)];
-                end
-            end
-        end
         carArrows = roads(i).draw(carArrows, ax,parsed_osm.bounds, vehicles);
     end
     
@@ -220,7 +205,6 @@ while(true)
         %avg cells / time im km/h
         v = (v / vehicleCountTemp)* settings.cellLengthInMeters *3.6;
 
-        
         scatter(ax3,vehicleCountTemp,v*vehicleCountTemp,'LineWidth',1.5','Marker','*','MarkerEdgeColor','r');
     end
     
@@ -231,8 +215,4 @@ while(true)
             vehicles(i).switchToThisLane = -1;
         end
     end
-    
-    if length(carCount) ~= length(vehicles)
-        error(['vehicles disappeared' num2str(length(carCount)) '--' num2str(length(vehicles))]);
-	end
 end
