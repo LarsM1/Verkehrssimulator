@@ -1,1 +1,1 @@
-# Verkehrssimulator project of the course "Verkehrs-, Leit- & Steuerungssysteme"
+# Traffic Simulation project based on the Nagel Schreckenberg model

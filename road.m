@@ -447,17 +447,11 @@ classdef road < handle
                                 end
                             end
 
-                            distanceInFront = -1;
+                            vehicleInFront = false;
                             for x = alpha:alpha+vehicles(vehicID).v+2
                                 if obj.cells(possibleSwitchLanes(k),x) ~= 0
-                                    distanceInFront = 99;
+                                    vehicleInFront = true;
                                     break;
-        %                             if obj.cells(possibleSwitchLanes(k),x) < 0
-        %                                 distanceInFront = -2;
-        %                                 break;
-        %                             end
-        %                             distanceInFront = x - alpha;
-        %                             break;
                                 end
                             end
 
@@ -469,7 +463,7 @@ classdef road < handle
                                 end
                             end
 
-                            if distanceInFront ~= -1
+                            if vehicleInFront ~= false
                                 continue;
                             end
 

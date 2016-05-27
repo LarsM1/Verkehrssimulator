@@ -10,6 +10,7 @@ settings.testScenario = 0;
 %%
 settings.spawnVehicles = true;
 settings.despawnVehicles = true;
+
 %2 lanes are recommended
 settings.minimumLanes = 2;
 settings.maximumLanes = 2;
@@ -31,7 +32,7 @@ settings.p=0.2;
 settings.p0=0.4;
 
 %run delay
-settings.delay=1/20;
+settings.delay=1/10;
 
 %analysis settings
 settings.analysisRoadID = 2;
